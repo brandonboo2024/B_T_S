@@ -49,9 +49,9 @@ app.post('/api/data', (req, res) => {
 });
 
 // Start server
-app.listen(port, () => {
-  console.log(`🚀 Server running on http://localhost:${port}`);
-  console.log(`📡 API available at http://localhost:${port}/api/test`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${port}`);
+  console.log(`Access from other devices: http://[YOUR-IP]:${port}`);
 });
 
 // Error handling
