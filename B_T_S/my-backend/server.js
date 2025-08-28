@@ -27,6 +27,21 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/api/feed', (req, res) => {
+  const mockVideos = [
+    { id: 1, author: '@johndoe', description: 'Check out this amazing dance! #viral #dance', likes: 15200, comments: 892, shares: 234 },
+    { id: 2, author: '@janesmith', description: 'Cooking hack that will blow your mind #cooking #lifehack', likes: 8900, comments: 445, shares: 123 },
+    { id: 3, author: '@bobjohnson', description: 'My cat does the funniest thing #cats #funny #pets', likes: 25600, comments: 1205, shares: 567 },
+    { id: 4, author: '@coolcreator', description: 'This trend is taking over! #trending #viral', likes: 45300, comments: 2100, shares: 890 }
+  ];
+  
+  res.json({
+    success: true,
+    data: mockVideos,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API routes
 app.get('/api/test', (req, res) => {
   res.json({ 

@@ -1,124 +1,153 @@
 import { useCallback, useEffect, useState } from '@lynx-js/react'
-
 import './App.css'
-import arrow from './assets/arrow.png'
-import lynxLogo from './assets/lynx-logo.png'
-import reactLynxLogo from './assets/react-logo.png'
 
-// creating construct for Video
 interface Video {
   id: number
   author: string
   description: string
+  videoUrl?: string
+  likes: number
+  comments: number
+  shares: number
 }
 
-export function App(props: {
-  onRender?: () => void
-}) {
-  const [alterLogo, setAlterLogo] = useState(false)
+export function App(props: { onRender?: () => void }) {
   const [videos, setVideos] = useState<Video[]>([])
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showTikTok, setShowTikTok] = useState(false)
+
   useEffect(() => {
-    console.info('Hello, ReactLynx')
+    console.info('TikTok Simulation Loading...')
     fetchVideos()
   }, [])
 
   const fetchVideos = async () => {
-    try{
+    try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('http://192.168.1.68:5000/api/feed')
+      const response = await fetch('http://192.168.1.16:3001/api/feed')
 
-      if(!response.ok){
+      if (!response.ok) {
         throw new Error(`Server error: ${response.status}`)
       }
       
       const result = await response.json()
 
-      if(result.success) {
-        setVideos(result.data) // save videos to state
+      if (result.success) {
+        setVideos(result.data)
         console.log('Videos loaded:', result.data)
-      }else{
+      } else {
         throw new Error('Failed to load videos')
       }
-    }catch(err) {
-      console.error('Complete and total failure:', err)
+    } catch (err) {
+      console.error('Failed to load videos:', err)
       setError(String(err))
-    } finally{
+      // Use mock data if API fails
+      setVideos([
+        { id: 1, author: '@johndoe', description: 'Check out this amazing dance! #viral #dance', likes: 15200, comments: 892, shares: 234 },
+        { id: 2, author: '@janesmith', description: 'Cooking hack that will blow your mind 🤯 #cooking #lifehack', likes: 8900, comments: 445, shares: 123 },
+        { id: 3, author: '@bobjohnson', description: 'My cat does the funniest thing #cats #funny #pets', likes: 25600, comments: 1205, shares: 567 }
+      ])
+    } finally {
       setLoading(false)
     }
   }
 
-  props.onRender?.()
+  const nextVideo = useCallback(() => {
+    setCurrentVideoIndex(prev => (prev + 1) % videos.length)
+  }, [videos.length])
 
+  const prevVideo = useCallback(() => {
+    setCurrentVideoIndex(prev => (prev - 1 + videos.length) % videos.length)
+  }, [videos.length])
 
-  const onTap = useCallback(() => {
-    'background only'
-    setAlterLogo(prevAlterLogo => !prevAlterLogo)
+  const likeVideo = useCallback(() => {
+    setVideos(prev => prev.map((video, index) => 
+      index === currentVideoIndex 
+        ? { ...video, likes: video.likes + 1 }
+        : video
+    ))
+  }, [currentVideoIndex])
+
+  const startTikTokSimulation = useCallback(() => {
+    setShowTikTok(true)
   }, [])
 
+  props.onRender?.()
+
+  if (loading) {
+    return (
+      <view className="LoadingScreen">
+        <text>Loading TikTok simulation...</text>
+      </view>
+    )
+  }
+
+  if (!showTikTok) {
+    return (
+      <view className="WelcomeScreen">
+        <text className="AppTitle">TikTok Simulation</text>
+        <text className="AppSubtitle">Tap to start scrolling</text>
+        <view className="StartButton" bindtap={startTikTokSimulation}>
+          <text>Start TikTok</text>
+        </view>
+        {error && <text className="ErrorText">Note: Using mock data (API error)</text>}
+      </view>
+    )
+  }
+
+  const currentVideo = videos[currentVideoIndex]
+
   return (
-    <view>
-      <view className='Background' />
-      <view className='App'>
-        <view className='Banner'>
-          <view className='Logo' bindtap={onTap}>
-            {alterLogo
-              ? <image src={reactLynxLogo} className='Logo--react' />
-              : <image src={lynxLogo} className='Logo--lynx' />}
-          </view>
-          <text className='Title'>TikTok</text>
-          <text className='Subtitle'>on Lynx</text>
+    <view className="TikTokContainer">
+      {/* Video Area */}
+      <view className="VideoContainer">
+        <view className="VideoPlaceholder">
+          <text className="VideoTitle">Video {currentVideo.id}</text>
+          <text className="VideoAuthor">{currentVideo.author}</text>
         </view>
         
-        <view className='Content'>
-          <image src={arrow} className='Arrow' />
-          <text className='Description'>Tap the logo to start the simulation!</text>
-          {/* commented out small hint for now */}
-          {/* <text className='Hint'> */}
-          {/*   Edit<text */}
-          {/*     style={{ */}
-          {/*       fontStyle: 'italic', */}
-          {/*       color: 'rgba(255, 255, 255, 0.85)', */}
-          {/*     }} */}
-          {/*   > */}
-          {/*     {' src/App.tsx '} */}
-          {/*   </text> */}
-          {/*   to see updates! */}
-          {/* </text> */}
+        {/* Navigation */}
+        <view className="VideoNavigation">
+          <view className="NavButton" bindtap={prevVideo}>
+            <text>↑</text>
+          </view>
+          <view className="NavButton" bindtap={nextVideo}>
+            <text>↓</text>
+          </view>
         </view>
+      </view>
 
-        {/* 👇 SIMPLE API STATUS DISPLAY */}
-        <view style={{ padding: 10 }}>
-          {/* Show loading status */}
-          {loading && <text>Loading videos...</text>}
-          
-          {/* Show error status */}
-          {error && <text>Error: {error}</text>}
-          
-          {/* Show success status */}
-          {!loading && !error && videos.length > 0 && (
-            <view>
-              <text>✅ Loaded {videos.length} videos:</text>
-              {videos.map(video => (
-                <view key={video.id} style={{ marginLeft: 10, marginTop: 5 }}>
-                  <text>ID: {video.id}</text>
-                  <text>Title: {video.author}</text>
-                  <text>Description: {video.description}</text>
-                </view>
-              ))}
-            </view>
-          )}
-          
-          {/* Show empty status */}
-          {!loading && !error && videos.length === 0 && (
-            <text>No videos found</text>
-          )}
+      {/* Side Actions */}
+      <view className="SideActions">
+        <view className="ActionButton" bindtap={likeVideo}>
+          <text className="ActionIcon">♥</text>
+          <text className="ActionCount">{currentVideo.likes}</text>
         </view>
+        
+        <view className="ActionButton">
+          <text className="ActionIcon">💬</text>
+          <text className="ActionCount">{currentVideo.comments}</text>
+        </view>
+        
+        <view className="ActionButton">
+          <text className="ActionIcon">📤</text>
+          <text className="ActionCount">{currentVideo.shares}</text>
+        </view>
+      </view>
 
-        <view style={{ flex: 1 }} />
+      {/* Bottom Info */}
+      <view className="BottomInfo">
+        <text className="Username">{currentVideo.author}</text>
+        <text className="Description">{currentVideo.description}</text>
+      </view>
+
+      {/* Debug Info */}
+      <view className="DebugInfo">
+        <text>Video {currentVideoIndex + 1} of {videos.length}</text>
       </view>
     </view>
   )
