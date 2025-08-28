@@ -29,7 +29,7 @@ export function App(props: {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('http://<ip address>:5000/api/videos')
+      const response = await fetch('http://192.168.1.68:5000/api/feed')
 
       if(!response.ok){
         throw new Error(`Server error: ${response.status}`)
@@ -72,6 +72,7 @@ export function App(props: {
           <text className='Title'>React</text>
           <text className='Subtitle'>on Lynx</text>
         </view>
+        
         <view className='Content'>
           <image src={arrow} className='Arrow' />
           <text className='Description'>Tap the logo and have fun!</text>
@@ -87,6 +88,35 @@ export function App(props: {
             to see updates!
           </text>
         </view>
+
+        {/* 👇 SIMPLE API STATUS DISPLAY */}
+        <view style={{ padding: 10 }}>
+          {/* Show loading status */}
+          {loading && <text>Loading videos...</text>}
+          
+          {/* Show error status */}
+          {error && <text>Error: {error}</text>}
+          
+          {/* Show success status */}
+          {!loading && !error && videos.length > 0 && (
+            <view>
+              <text>✅ Loaded {videos.length} videos:</text>
+              {videos.map(video => (
+                <view key={video.id} style={{ marginLeft: 10, marginTop: 5 }}>
+                  <text>ID: {video.id}</text>
+                  <text>Title: {video.author}</text>
+                  <text>Description: {video.description}</text>
+                </view>
+              ))}
+            </view>
+          )}
+          
+          {/* Show empty status */}
+          {!loading && !error && videos.length === 0 && (
+            <text>No videos found</text>
+          )}
+        </view>
+
         <view style={{ flex: 1 }} />
       </view>
     </view>
