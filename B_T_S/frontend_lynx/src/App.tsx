@@ -69,24 +69,25 @@ export function App(props: {
               ? <image src={reactLynxLogo} className='Logo--react' />
               : <image src={lynxLogo} className='Logo--lynx' />}
           </view>
-          <text className='Title'>React</text>
+          <text className='Title'>TikTok</text>
           <text className='Subtitle'>on Lynx</text>
         </view>
         
         <view className='Content'>
           <image src={arrow} className='Arrow' />
-          <text className='Description'>Tap the logo and have fun!</text>
-          <text className='Hint'>
-            Edit<text
-              style={{
-                fontStyle: 'italic',
-                color: 'rgba(255, 255, 255, 0.85)',
-              }}
-            >
-              {' src/App.tsx '}
-            </text>
-            to see updates!
-          </text>
+          <text className='Description'>Tap the logo to start the simulation!</text>
+          {/* commented out small hint for now */}
+          {/* <text className='Hint'> */}
+          {/*   Edit<text */}
+          {/*     style={{ */}
+          {/*       fontStyle: 'italic', */}
+          {/*       color: 'rgba(255, 255, 255, 0.85)', */}
+          {/*     }} */}
+          {/*   > */}
+          {/*     {' src/App.tsx '} */}
+          {/*   </text> */}
+          {/*   to see updates! */}
+          {/* </text> */}
         </view>
 
         {/* 👇 SIMPLE API STATUS DISPLAY */}
