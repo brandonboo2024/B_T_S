@@ -15,6 +15,7 @@ interface Video {
 export function App(props: {
   onRender?: () => void
 }) {
+  const [currentPage, setCurrentPage] = useState('welcome');
   const [alterLogo, setAlterLogo] = useState(false)
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
@@ -51,11 +52,70 @@ export function App(props: {
     }
   }
 
-  props.onRender?.()
+  //  Function for the TikTok feed screen
+  const TikTokFeed = () => (
+    <view style={{ padding: 20 }}>
+      <text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 20 }}>
+        TikTok Feed
+      </text>
+      
+      {videos.map(video => (
+        <view key={video.id} style={{ 
+          marginBottom: 20, 
+          padding: 15, 
+          backgroundColor: '#f0f0f0',
+          borderRadius: 10 
+        }}>
+          <text style={{ fontWeight: 'bold', fontSize: 18 }}>
+            @{video.author}
+          </text>
+          <text style={{ marginTop: 5 }}>
+            {video.description}
+          </text>
+          <text style={{ color: 'gray', marginTop: 10 }}>
+            ❤️ 1.2K likes · 💬 45 comments
+          </text>
+        </view>
+      ))}
+    </view>
+  );
 
+  // 👇 Add this function for the welcome screen
+  const WelcomeScreen = () => (
+    <view>
+      <view className='Content'>
+        <image src={arrow} className='Arrow' />
+        <text className='Description'>Tap the logo to start the simulation!</text>
+      </view>
+
+      {/* 👇 API STATUS DISPLAY */}
+      <view style={{ padding: 10 }}>
+        {loading && <text>Loading videos...</text>}
+        {error && <text>Error: {error}</text>}
+        {!loading && !error && videos.length > 0 && (
+          <view>
+            <text>✅ Loaded {videos.length} videos:</text>
+            {videos.map(video => (
+              <view key={video.id} style={{ marginLeft: 10, marginTop: 5 }}>
+                <text>ID: {video.id}</text>
+                <text>Title: {video.author}</text>
+                <text>Description: {video.description}</text>
+              </view>
+            ))}
+          </view>
+        )}
+        {!loading && !error && videos.length === 0 && (
+          <text>No videos found</text>
+        )}
+      </view>
+    </view>
+  );
+
+  props.onRender?.()
 
   const onTap = useCallback(() => {
     'background only'
+    setCurrentPage(prevPage => prevPage === 'welcome' ? 'tiktok' : 'welcome')
     setAlterLogo(prevAlterLogo => !prevAlterLogo)
   }, [])
 
@@ -73,53 +133,12 @@ export function App(props: {
           <text className='Subtitle'>on Lynx</text>
         </view>
         
-        <view className='Content'>
-          <image src={arrow} className='Arrow' />
-          <text className='Description'>Tap the logo to start the simulation!</text>
-          {/* commented out small hint for now */}
-          {/* <text className='Hint'> */}
-          {/*   Edit<text */}
-          {/*     style={{ */}
-          {/*       fontStyle: 'italic', */}
-          {/*       color: 'rgba(255, 255, 255, 0.85)', */}
-          {/*     }} */}
-          {/*   > */}
-          {/*     {' src/App.tsx '} */}
-          {/*   </text> */}
-          {/*   to see updates! */}
-          {/* </text> */}
-        </view>
-
-        {/* 👇 SIMPLE API STATUS DISPLAY */}
-        <view style={{ padding: 10 }}>
-          {/* Show loading status */}
-          {loading && <text>Loading videos...</text>}
-          
-          {/* Show error status */}
-          {error && <text>Error: {error}</text>}
-          
-          {/* Show success status */}
-          {!loading && !error && videos.length > 0 && (
-            <view>
-              <text>✅ Loaded {videos.length} videos:</text>
-              {videos.map(video => (
-                <view key={video.id} style={{ marginLeft: 10, marginTop: 5 }}>
-                  <text>ID: {video.id}</text>
-                  <text>Title: {video.author}</text>
-                  <text>Description: {video.description}</text>
-                </view>
-              ))}
-            </view>
-          )}
-          
-          {/* Show empty status */}
-          {!loading && !error && videos.length === 0 && (
-            <text>No videos found</text>
-          )}
-        </view>
-
+        {/* 👇 THIS IS THE MAGIC PART - SWITCH BETWEEN SCREENS */}
+        {currentPage === 'welcome' ? <WelcomeScreen /> : <TikTokFeed />}
+        
         <view style={{ flex: 1 }} />
       </view>
     </view>
   )
+
 }
