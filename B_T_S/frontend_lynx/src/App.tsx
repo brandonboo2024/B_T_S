@@ -54,25 +54,25 @@ export function App(props: {
 
   //  Function for the TikTok feed screen
   const TikTokFeed = () => (
-    <view style={{ padding: 20 }}>
-      <text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 20 }}>
+    <view style={{ padding: "20px" }}>
+      <text style={{ fontSize: "24px", fontWeight: 'bold', marginBottom: "20px" }}>
         TikTok Feed
       </text>
       
       {videos.map(video => (
         <view key={video.id} style={{ 
-          marginBottom: 20, 
-          padding: 15, 
+          marginBottom: "20px", 
+          padding: "15px", 
           backgroundColor: '#f0f0f0',
-          borderRadius: 10 
+          borderRadius: "10px" 
         }}>
-          <text style={{ fontWeight: 'bold', fontSize: 18 }}>
+          <text style={{ fontWeight: 'bold', fontSize: "18px" }}>
             @{video.author}
           </text>
-          <text style={{ marginTop: 5 }}>
+          <text style={{ marginTop: "5px" }}>
             {video.description}
           </text>
-          <text style={{ color: 'gray', marginTop: 10 }}>
+          <text style={{ color: 'gray', marginTop: "10px" }}>
             ❤️ 1.2K likes · 💬 45 comments
           </text>
         </view>
@@ -89,14 +89,14 @@ export function App(props: {
       </view>
 
       {/* 👇 API STATUS DISPLAY */}
-      <view style={{ padding: 10 }}>
+      <view style={{ padding: "10px" }}>
         {loading && <text>Loading videos...</text>}
         {error && <text>Error: {error}</text>}
         {!loading && !error && videos.length > 0 && (
           <view>
             <text>✅ Loaded {videos.length} videos:</text>
             {videos.map(video => (
-              <view key={video.id} style={{ marginLeft: 10, marginTop: 5 }}>
+              <view key={video.id} style={{ marginLeft: "10px", marginTop: "5px" }}>
                 <text>ID: {video.id}</text>
                 <text>Title: {video.author}</text>
                 <text>Description: {video.description}</text>
@@ -121,7 +121,7 @@ export function App(props: {
 
   return (
     <view>
-      <view className='Background' />
+      {/* <view className='Background' /> */}
       <view className='App'>
         <view className='Banner'>
           <view className='Logo' bindtap={onTap}>
