@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from '@lynx-js/react'
+import { useCallback, useState } from '@lynx-js/react'
 
 interface Video {
   id: number
@@ -10,32 +10,17 @@ interface Video {
   category: string
 }
 
-export function App(props: { onRender?: () => void }) {
-  const [videos, setVideos] = useState<Video[]>([])
+interface AppProps {
+  onRender?: () => void
+  videos: Video[]
+  setVideos: (videos: Video[] | ((prev: Video[]) => Video[])) => void
+  loading: boolean
+}
+
+export function App({ onRender, videos, setVideos, loading }: AppProps) {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
-  const [loading, setLoading] = useState(true)
   const [showTikTok, setShowTikTok] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('')
-
-  useEffect(() => {
-    fetchVideos()
-  }, [])
-
-  const fetchVideos = async () => {
-    try {
-      const mockVideos = [
-        { id: 1, author: '@johndoe', description: 'Amazing dance moves! #viral #dance', likes: 15200, comments: 892, shares: 234, category: 'Dance' },
-        { id: 2, author: '@janesmith', description: 'Cooking hack that will blow your mind #cooking', likes: 8900, comments: 445, shares: 123, category: 'Cooking' },
-        { id: 3, author: '@funnyguy', description: 'This cat is hilarious #funny #pets', likes: 25600, comments: 1205, shares: 567, category: 'Comedy' },
-        { id: 4, author: '@fashionista', description: 'OOTD for spring #fashion #style', likes: 12300, comments: 678, shares: 289, category: 'Fashion' },
-        { id: 5, author: '@traveler', description: 'Hidden gem in Tokyo #travel #japan', likes: 18700, comments: 934, shares: 456, category: 'Travel' }
-      ];
-      setVideos(mockVideos)
-      setLoading(false)
-    } catch (err) {
-      setLoading(false)
-    }
-  }
 
   const nextVideo = useCallback(() => {
     setCurrentVideoIndex(prev => (prev + 1) % videos.length)
@@ -47,7 +32,7 @@ export function App(props: { onRender?: () => void }) {
         ? { ...video, likes: video.likes + 1 }
         : video
     ))
-  }, [currentVideoIndex])
+  }, [currentVideoIndex, setVideos])
 
   const startCategory = useCallback((category: string) => {
     const categoryVideos = videos.filter(v => v.category === category)
@@ -64,7 +49,7 @@ export function App(props: { onRender?: () => void }) {
     setSelectedCategory('')
   }, [])
 
-  props.onRender?.()
+  onRender?.()
 
   if (loading) {
     return (
@@ -109,7 +94,7 @@ export function App(props: { onRender?: () => void }) {
             }}
           >
             <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
-              💃 Dance Videos
+              Dance Videos
             </text>
             <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
               Trending dance moves and choreography
@@ -126,7 +111,7 @@ export function App(props: { onRender?: () => void }) {
             }}
           >
             <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
-              👩‍🍳 Cooking Hacks
+              Cooking Hacks
             </text>
             <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
               Quick recipes and kitchen tips
@@ -143,7 +128,7 @@ export function App(props: { onRender?: () => void }) {
             }}
           >
             <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
-              😂 Comedy
+              Comedy
             </text>
             <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
               Funny videos and memes
@@ -160,7 +145,7 @@ export function App(props: { onRender?: () => void }) {
             }}
           >
             <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
-              👗 Fashion
+              Fashion
             </text>
             <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
               Style inspiration and outfit ideas
@@ -177,7 +162,7 @@ export function App(props: { onRender?: () => void }) {
             }}
           >
             <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
-              ✈️ Travel
+              Travel
             </text>
             <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
               Amazing destinations and travel tips
@@ -189,6 +174,14 @@ export function App(props: { onRender?: () => void }) {
   }
 
   const currentVideo = videos[currentVideoIndex]
+
+  if (!currentVideo) {
+    return (
+      <view style={{ padding: '20px', textAlign: 'center', backgroundColor: '#000', minHeight: '100vh', color: 'white' }}>
+        <text>No videos available</text>
+      </view>
+    )
+  }
 
   return (
     <view style={{ 
@@ -264,7 +257,7 @@ export function App(props: { onRender?: () => void }) {
           textAlign: 'center',
           minWidth: '50px'
         }}>
-          <text style={{ fontSize: '20px' }}>❤️</text>
+          <text style={{ fontSize: '20px' }}>♥</text>
           <text style={{ fontSize: '12px', display: 'block' }}>
             {currentVideo.likes.toLocaleString()}
           </text>

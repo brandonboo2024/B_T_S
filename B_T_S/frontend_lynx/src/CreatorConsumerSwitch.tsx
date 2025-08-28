@@ -1,56 +1,67 @@
-// src/CreatorConsumerSwitch.tsx
 import { useMemo, useState } from '@lynx-js/react';
 
 export type VideoMeta = {
   id: string;
   title?: string;
   creator?: string;
-  likes: number;
-  comments: number;
+  likes: number | string;
+  comments: number | string;
 };
 
 const CREATOR_SHARE = 0.55;
 const VALUE_PER_ENGAGEMENT = 0.015;
 
+function toNum(n: any): number {
+  const v = Number(n);
+  return Number.isFinite(v) ? v : 0;
+}
+
 function computeProposedRevenue(v: VideoMeta): number {
-  const engagement = v.likes + 2 * v.comments;
-  const gross = engagement * VALUE_PER_ENGAGEMENT;
-  return CREATOR_SHARE * gross;
+  const likes = toNum(v.likes);
+  const comments = toNum(v.comments);
+  return CREATOR_SHARE * (likes + 2 * comments) * VALUE_PER_ENGAGEMENT;
 }
 
 export default function ModeShell({
   children,
-  videos,
+  videos = [],
 }: {
   children: any;
-  videos: VideoMeta[];
+  videos?: VideoMeta[];
 }) {
   const [mode, setMode] = useState<'consumer' | 'creator'>('consumer');
+  const safe = Array.isArray(videos) ? videos : [];
+
   const rows = useMemo(
-    () => videos.map((v) => ({ ...v, revenue: computeProposedRevenue(v) })),
-    [videos]
+    () =>
+      safe.map((v) => ({
+        ...v,
+        likes: toNum(v.likes),
+        comments: toNum(v.comments),
+        revenue: computeProposedRevenue(v),
+      })),
+    [safe]
   );
 
   return (
     <view style={{ position: 'relative', minHeight: '100vh' }}>
-      {/* keep your consumer UI exactly as-is */}
       <view>{children}</view>
 
-      {/* tiny toggle on top-right */}
+      {/* Toggle pill — align with back button */}
       <view
         bindtap={() => setMode(mode === 'consumer' ? 'creator' : 'consumer')}
         style={{
           position: 'fixed',
-          top: '16px',
-          right: '16px',
-          zIndex: 1000,
-          padding: '8px 12px',
+          top: '56px',         // same vertical as back button
+          right: '20px',       // sits flush to the right
+          zIndex: 2147483647,
+          padding: '8px 14px',
           borderRadius: '999px',
           border: '1px solid rgba(0,0,0,0.15)',
           backgroundColor: 'rgba(255,255,255,0.95)',
         }}
       >
-        <text style={{ color: '#000' }}>
+        <text style={{ color: '#000', fontSize: '14px', fontWeight: '600' }}>
           {mode === 'consumer' ? 'Creator Mode' : 'Consumer Mode'}
         </text>
       </view>
@@ -69,35 +80,31 @@ function CreatorOverlay({
   rows: Array<VideoMeta & { revenue: number }>;
   onClose: () => void;
 }) {
-  const totalLikes = rows.reduce((a, r) => a + r.likes, 0);
-  const totalComments = rows.reduce((a, r) => a + r.comments, 0);
+  const totalLikes = rows.reduce((a, r) => a + toNum(r.likes), 0);
+  const totalComments = rows.reduce((a, r) => a + toNum(r.comments), 0);
   const totalRevenue = rows.reduce((a, r) => a + r.revenue, 0);
 
   return (
     <view
       style={{
         position: 'fixed',
-        inset: '0',
-        zIndex: 999,
+        top: 0, left: 0, right: 0, bottom: 0,
+        zIndex: 2147483000,
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'flex-end',
       }}
     >
-      {/* dim backdrop */}
       <view
         bindtap={onClose}
         style={{
           position: 'absolute',
-          inset: '0',
-          backgroundColor: 'rgba(0,0,0,0.2)',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.25)',
         }}
       />
 
-      {/* slide-in panel */}
       <view
-        role="dialog"
-        aria-label="Creator analytics"
         style={{
           position: 'relative',
           height: '100%',
@@ -109,28 +116,21 @@ function CreatorOverlay({
           flexDirection: 'column',
         }}
       >
-        {/* header */}
+        {/* Header */}
         <view
           style={{
-            position: 'sticky',
-            top: '0',
+            padding: '14px 16px',
+            borderBottom: '1px solid #eee',
+            backgroundColor: '#fff',
             display: 'flex',
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '12px 16px',
-            borderBottom: '1px solid #eee',
-            backgroundColor: '#fff',
           }}
         >
-          <view>
-            <text style={{ fontWeight: '600', color: '#000' }}>
-              Creator Dashboard
-            </text>
-            <text style={{ fontSize: '12px', color: '#666' }}>
-              Light analytics overlay
-            </text>
-          </view>
+          <text style={{ fontWeight: '600', fontSize: '16px', color: '#111' }}>
+            Creator Dashboard
+          </text>
           <view
             bindtap={onClose}
             style={{
@@ -144,7 +144,7 @@ function CreatorOverlay({
           </view>
         </view>
 
-        {/* summary */}
+        {/* Totals */}
         <view
           style={{
             display: 'flex',
@@ -159,49 +159,45 @@ function CreatorOverlay({
           <Stat label="Est. Revenue" value={formatCurrency(totalRevenue)} />
         </view>
 
-        {/* list rows (no <table>, Lynx-safe) */}
-        <view style={{ flex: 1, overflow: 'auto', padding: '6px 0' }}>
+        {/* Per-video list */}
+        <view style={{ flex: 1, overflow: 'auto' }}>
           {rows.map((r) => (
             <view
               key={r.id}
               style={{
                 display: 'flex',
                 flexDirection: 'row',
-                alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '10px 16px',
+                padding: '12px 16px',
                 borderBottom: '1px solid #f2f2f2',
               }}
             >
               <view style={{ flex: 1, paddingRight: '8px' }}>
-                <text style={{ color: '#111' }}>{r.title ?? r.id}</text>
-                {r.creator ? (
-                  <text style={{ fontSize: '12px', color: '#777' }}>
-                    {' '}
-                    by {r.creator}
-                  </text>
-                ) : null}
-              </view>
-
-              <view style={{ width: '70px', textAlign: 'right' }}>
-                <text>{formatNumber(r.likes)}</text>
-              </view>
-              <view style={{ width: '90px', textAlign: 'right' }}>
-                <text>{formatNumber(r.comments)}</text>
-              </view>
-              <view style={{ width: '110px', textAlign: 'right' }}>
-                <text style={{ fontWeight: '600' }}>
-                  {formatCurrency(r.revenue)}
+                <text style={{ color: '#111', fontWeight: '500' }}>
+                  {r.title ?? r.id}
                 </text>
+                {r.creator && (
+                  <text style={{ fontSize: '12px', color: '#777' }}>
+                    {' '}by {r.creator}
+                  </text>
+                )}
               </view>
+              <text style={{ width: '70px', textAlign: 'right' }}>
+                {formatNumber(r.likes)}
+              </text>
+              <text style={{ width: '90px', textAlign: 'right' }}>
+                {formatNumber(r.comments)}
+              </text>
+              <text style={{ width: '110px', textAlign: 'right', fontWeight: '600' }}>
+                {formatCurrency(r.revenue)}
+              </text>
             </view>
           ))}
         </view>
 
         <view style={{ padding: '10px 16px', borderTop: '1px solid #eee' }}>
           <text style={{ fontSize: '12px', color: '#666' }}>
-            Proposed = {Math.round(CREATOR_SHARE * 100)}% × ($
-            {VALUE_PER_ENGAGEMENT.toFixed(3)} per like + 2×comment)
+            Proposed = {Math.round(CREATOR_SHARE * 100)}% × (${VALUE_PER_ENGAGEMENT.toFixed(3)} per like + 2×comment)
           </text>
         </view>
       </view>
@@ -213,37 +209,41 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <view
       style={{
+        flex: 1,
         border: '1px solid #eee',
-        borderRadius: '12px',
+        borderRadius: '10px',
         padding: '8px 10px',
         backgroundColor: '#fafafa',
-        flex: 1,
       }}
     >
       <text style={{ fontSize: '11px', color: '#777' }}>{label}</text>
-      <text style={{ fontWeight: '600', color: '#000' }}>{value}</text>
+      <text style={{ fontSize: '14px', fontWeight: '600', color: '#000' }}>
+        {value}
+      </text>
     </view>
   );
 }
 
-function formatNumber(n: number) {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      notation: 'compact',
-      maximumFractionDigits: 1,
-    }).format(n);
-  } catch {
-    return String(n);
-  }
+function formatNumber(n: any) {
+  const num = Number(n);
+  if (!isFinite(num)) return '0';
+  const abs = Math.abs(num);
+
+  if (abs >= 1e9) return (num / 1e9).toFixed(abs < 10e9 ? 1 : 0) + 'B';
+  if (abs >= 1e6) return (num / 1e6).toFixed(abs < 10e6 ? 1 : 0) + 'M';
+  if (abs >= 1e3) return (num / 1e3).toFixed(abs < 10e3 ? 1 : 0) + 'K';
+
+  // add thousands separators without Intl
+  const s = Math.round(num).toString();
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
-function formatCurrency(n: number) {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 2,
-    }).format(n);
-  } catch {
-    return `$${n.toFixed(2)}`;
-  }
+
+function formatCurrency(n: any) {
+  let num = Number(n);
+  if (!isFinite(num)) num = 0;
+  const sign = num < 0 ? '-' : '';
+  const s = Math.abs(num).toFixed(2);
+  const [i, d] = s.split('.');
+  const withCommas = i.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${sign}$${withCommas}.${d}`;
 }
