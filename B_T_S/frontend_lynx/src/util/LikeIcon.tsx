@@ -1,7 +1,7 @@
 import { useCallback ,useState } from "@lynx-js/react";
-import redHeart from "./redHeart.png";
-import whiteHeart from "./whiteHeart.png";
-import "../../index.css";
+import redHeart from "../assets/ImageCard/redHeart.png";
+import whiteHeart from "../assets/ImageCard/whiteHeart.png";
+import "../index.css";
 
 export default function LikeIcon() {
   const [isLiked, setIsLiked] = useState(false);

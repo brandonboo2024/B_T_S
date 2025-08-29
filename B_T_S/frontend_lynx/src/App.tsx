@@ -83,7 +83,7 @@ export function App(props: {
   );
 
   const GalleryScreen = () => (
-    <view>
+    <view style = {{flex:  2}}>
     <Gallery pictureData = {furnituresPictures} />
     </view>
   ); 
@@ -142,7 +142,7 @@ export function App(props: {
         </view>
         
         {/* 👇 THIS IS THE MAGIC PART - SWITCH BETWEEN SCREENS */}
-        {currentPage === 'welcome' ? <GalleryScreen /> : <TikTokFeed />}
+        {currentPage === 'welcome' ? <WelcomeScreen /> : <GalleryScreen />}
         
         <view style={{ flex: 1 }} />
       </view>
