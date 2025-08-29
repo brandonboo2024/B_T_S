@@ -1,7 +1,7 @@
 import '@lynx-js/preact-devtools'
 import '@lynx-js/react/debug'
 import { root } from '@lynx-js/react'
-import WrappedApp from './WrappedApp'
+import WrappedApp from './WrappedApp.js'
 
 root.render(<WrappedApp />)
 

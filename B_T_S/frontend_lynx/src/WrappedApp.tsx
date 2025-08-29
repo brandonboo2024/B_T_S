@@ -1,15 +1,26 @@
 import { useState, useEffect, useRef } from '@lynx-js/react';
-import CreatorConsumerSwitch from './CreatorConsumerSwitch';
+import CreatorConsumerSwitch from './CreatorConsumerSwitch.js';
 
 export default function WrappedApp() {
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(true);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const watchStartTime = useRef(null);
-  const videoWatchTimes = useRef({});
+  const watchStartTime = useRef<number>();
+  const videoWatchTimes = useRef<number[]>([]);
 
-  const API_BASE_URL = 'http://192.168.1.16:3001'; // Update with your IP
+  const API_BASE_URL = 'http://192.168.1.98:3001'; // Update with your IP
+
+  interface Video{
+    id: number;
+    author: string;
+    description: string;
+    likes?: number | string;
+    comments?: number | string;
+    shares?: number;
+    views?: number;
+    saves?: number;
+  }
 
   useEffect(() => {
     fetchVideos();
@@ -101,7 +112,7 @@ export default function WrappedApp() {
     return () => {
       if (!showMenu && videos[currentVideoIndex]) {
         trackWatchTime(videos[currentVideoIndex].id);
-        watchStartTime.current = null;
+        watchStartTime.current = 0;
       }
     };
   }, [currentVideoIndex, showMenu]);
@@ -214,7 +225,7 @@ export default function WrappedApp() {
             backgroundColor: '#ff0050',
             padding: '10px 20px',
             borderRadius: '10px',
-            display: 'inline-block'
+            // display: 'inline-block'
           }}
         >
           <text style={{ color: 'white' }}>Retry</text>

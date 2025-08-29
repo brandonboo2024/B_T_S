@@ -12,12 +12,14 @@ interface Video {
 
 interface AppProps {
   onRender?: () => void
-  videos: Video[]
-  setVideos: (videos: Video[] | ((prev: Video[]) => Video[])) => void
-  loading: boolean
+  // videos: Video[]
+  // setVideos: (videos: Video[] | ((prev: Video[]) => Video[])) => void
+  // loading: boolean
 }
 
-export function App({ onRender, videos, setVideos, loading }: AppProps) {
+export function App({ onRender, /*videos, setVideos, loading */}: AppProps) {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [showTikTok, setShowTikTok] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('')

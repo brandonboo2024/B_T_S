@@ -1,11 +1,11 @@
 import { useMemo, useState } from '@lynx-js/react';
 
 export type VideoMeta = {
-  id: string;
+  id: number;
   title?: string;
   creator?: string;
-  likes: number | string;
-  comments: number | string;
+  likes?: number | string;
+  comments?: number | string;
 };
 
 const CREATOR_SHARE = 0.55;
