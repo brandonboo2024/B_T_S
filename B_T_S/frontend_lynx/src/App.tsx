@@ -1,11 +1,13 @@
 import {useEffect, useRef,  useCallback, useState } from '@lynx-js/react'
 import  CreatorConsumerSwitch from './CreatorConsumerSwitch.js'
+import './App.css'
+import lynxLogo from './assets/lynx-logo.png'
+import VideoContent from './utils/VideoContent.js'
+import { furnituresPictures } from "./assets/furnitures/furnituresPictures.js"
 
-interface AppProps {
-  onRender?: () => void
-}
 
-export function App({onRender}: AppProps) {
+export function App(props: { onRender?: () => void}) {
+  props.onRender?.()
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(true);
@@ -163,47 +165,43 @@ export function App({onRender}: AppProps) {
   }
 
   if (showMenu) {
-    return (
-      <view style={{ 
-        padding: '20px', 
-        paddingTop: '80px',
-        backgroundColor: '#000', 
-        minHeight: '100vh',
-        color: 'white'
-      }}>
-        <text style={{ 
-          fontSize: '24px', 
-          fontWeight: 'bold', 
-          marginBottom: '20px',
-          textAlign: 'center',
-          display: 'block',
-          color: 'white'
-        }}>TikTok Value Sharing Demo</text>
-        
-        <text style={{
-          fontSize: '14px',
-          textAlign: 'center',
-          display: 'block',
-          color: '#888',
-          marginBottom: '20px'
-        }}>
-          {videos.length} videos loaded from server
-        </text>
-        
-        <view 
-          bindtap={() => setShowMenu(false)}
-          style={{
-            backgroundColor: '#ff0050',
-            padding: '15px',
-            borderRadius: '10px',
-            textAlign: 'center'
-          }}
-        >
-          <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
-            Start Watching Videos
-          </text>
+  return(
+    <view>
+          <view className='Background' />
+          <view className='App'>
+            {/* Centered Logo Banner like in the original App.tsx */}
+            <view className='Banner'>
+              <view className='Logo'>
+                  <image src={lynxLogo} className='Logo--lynx' />
+              </view>
+              <text className='Title'>TikTok</text>
+              <text className='Subtitle'>Value Sharing Demo</text>
+            </view>
+            
+            {/* Your TikTok demo content */}
+            <view className='Content'>
+              <text className='Description'>
+                {videos.length} videos loaded from server
+              </text>
+              
+              <view 
+                bindtap={() => setShowMenu(false)}
+                style={{
+                  backgroundColor: '#ff0050',
+                  padding: '15px',
+                  borderRadius: '10px',
+                  textAlign: 'center',
+                  marginTop: '20px'
+                }}
+              >
+                <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
+                  Start Watching Videos
+                </text>
+              </view>
+            </view>
+            <view style={{ flex: 1 }} />
+          </view>
         </view>
-      </view>
     );
   }
 
@@ -241,142 +239,147 @@ export function App({onRender}: AppProps) {
   const currentVideo = videos[currentVideoIndex];
 
   return (
-    <CreatorConsumerSwitch videos={videos}>
-      <view style={{
-        backgroundColor: '#000',
-        minHeight: '100vh',
-        color: 'white',
-        position: 'relative'
-      }}>
-        {/* Back button */}
-        <view
-          bindtap={() => setShowMenu(true)}
-          style={{
-            position: 'absolute',
-            top: '52px',
-            left: '20px',
-            zIndex: 10,
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            padding: '10px',
-            borderRadius: '20px'
-          }}
-        >
-          <text style={{ color: 'white' }}>Back</text>
-        </view>
+  //   <CreatorConsumerSwitch videos={videos}>
+  //     <view style={{
+  //       backgroundColor: '#000',
+  //       minHeight: '100vh',
+  //       color: 'white',
+  //       position: 'relative'
+  //     }}>
+  //       {/* Back button */}
+  //       <view
+  //         bindtap={() => setShowMenu(true)}
+  //         style={{
+  //           position: 'absolute',
+  //           top: '52px',
+  //           left: '20px',
+  //           zIndex: 10,
+  //           backgroundColor: 'rgba(255,255,255,0.2)',
+  //           padding: '10px',
+  //           borderRadius: '20px'
+  //         }}
+  //       >
+  //         <text style={{ color: 'white' }}>Back</text>
+  //       </view>
 
-        {/* Video content */}
-        <view style={{
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: `linear-gradient(135deg, #ff6b6b, #4ecdc4)`
-        }}>
-          <view style={{ textAlign: 'center' }}>
-            <text style={{ fontSize: '48px', marginBottom: '20px' }}>📱</text>
-            <text style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', color: 'white' }}>
-              {currentVideo.author}
-            </text>
-            <text style={{ fontSize: '14px', marginBottom: '20px', color: 'white' }}>
-              {currentVideo.description}
-            </text>
-            <text style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
-              👁 {currentVideo.views || 0} views
-            </text>
-          </view>
-        </view>
+  //       {/* Video content */}
+  //       <view style={{
+  //         height: '100vh',
+  //         display: 'flex',
+  //         alignItems: 'center',
+  //         justifyContent: 'center',
+  //         background: `linear-gradient(135deg, #ff6b6b, #4ecdc4)`
+  //       }}>
+  //         <view style={{ textAlign: 'center' }}>
+  //           <text style={{ fontSize: '48px', marginBottom: '20px' }}>📱</text>
+  //           <text style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', color: 'white' }}>
+  //             {currentVideo.author}
+  //           </text>
+  //           <text style={{ fontSize: '14px', marginBottom: '20px', color: 'white' }}>
+  //             {currentVideo.description}
+  //           </text>
+  //           <text style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
+  //             👁 {currentVideo.views || 0} views
+  //           </text>
+  //         </view>
+  //       </view>
 
-        {/* Action buttons */}
-        <view style={{
-          position: 'absolute',
-          right: '20px',
-          bottom: '120px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '15px',
-          alignItems: 'center'
-        }}>
-          <view
-            bindtap={likeVideo}
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              padding: '12px',
-              borderRadius: '30px',
-              textAlign: 'center',
-              minWidth: '60px'
-            }}
-          >
-            <text style={{ fontSize: '24px', color: 'white' }}>♥</text>
-            <text style={{ fontSize: '12px', display: 'block', color: 'white' }}>
-              {currentVideo.likes || 0}
-            </text>
-          </view>
+  //       {/* Action buttons */}
+  //       <view style={{
+  //         position: 'absolute',
+  //         right: '20px',
+  //         bottom: '120px',
+  //         display: 'flex',
+  //         flexDirection: 'column',
+  //         gap: '15px',
+  //         alignItems: 'center'
+  //       }}>
+  //         <view
+  //           bindtap={likeVideo}
+  //           style={{
+  //             backgroundColor: 'rgba(255,255,255,0.2)',
+  //             padding: '12px',
+  //             borderRadius: '30px',
+  //             textAlign: 'center',
+  //             minWidth: '60px'
+  //           }}
+  //         >
+  //           <text style={{ fontSize: '24px', color: 'white' }}>♥</text>
+  //           <text style={{ fontSize: '12px', display: 'block', color: 'white' }}>
+  //             {currentVideo.likes || 0}
+  //           </text>
+  //         </view>
 
-          <view
-            bindtap={commentVideo}
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              padding: '12px',
-              borderRadius: '30px',
-              textAlign: 'center',
-              minWidth: '60px'
-            }}
-          >
-            <text style={{ fontSize: '24px', color: 'white' }}>💬</text>
-            <text style={{ fontSize: '12px', display: 'block', color: 'white' }}>
-              {currentVideo.comments || 0}
-            </text>
-          </view>
+  //         <view
+  //           bindtap={commentVideo}
+  //           style={{
+  //             backgroundColor: 'rgba(255,255,255,0.2)',
+  //             padding: '12px',
+  //             borderRadius: '30px',
+  //             textAlign: 'center',
+  //             minWidth: '60px'
+  //           }}
+  //         >
+  //           <text style={{ fontSize: '24px', color: 'white' }}>💬</text>
+  //           <text style={{ fontSize: '12px', display: 'block', color: 'white' }}>
+  //             {currentVideo.comments || 0}
+  //           </text>
+  //         </view>
 
-          <view
-            bindtap={shareVideo}
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              padding: '12px',
-              borderRadius: '30px',
-              textAlign: 'center',
-              minWidth: '60px'
-            }}
-          >
-            <text style={{ fontSize: '24px', color: 'white' }}>↗</text>
-            <text style={{ fontSize: '12px', display: 'block', color: 'white' }}>
-              {currentVideo.shares || 0}
-            </text>
-          </view>
+  //         <view
+  //           bindtap={shareVideo}
+  //           style={{
+  //             backgroundColor: 'rgba(255,255,255,0.2)',
+  //             padding: '12px',
+  //             borderRadius: '30px',
+  //             textAlign: 'center',
+  //             minWidth: '60px'
+  //           }}
+  //         >
+  //           <text style={{ fontSize: '24px', color: 'white' }}>↗</text>
+  //           <text style={{ fontSize: '12px', display: 'block', color: 'white' }}>
+  //             {currentVideo.shares || 0}
+  //           </text>
+  //         </view>
 
-          <view
-            bindtap={saveVideo}
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              padding: '12px',
-              borderRadius: '30px',
-              textAlign: 'center',
-              minWidth: '60px'
-            }}
-          >
-            <text style={{ fontSize: '24px', color: 'white' }}>🔖</text>
-            <text style={{ fontSize: '12px', display: 'block', color: 'white' }}>
-              {currentVideo.saves || 0}
-            </text>
-          </view>
-        </view>
+  //         <view
+  //           bindtap={saveVideo}
+  //           style={{
+  //             backgroundColor: 'rgba(255,255,255,0.2)',
+  //             padding: '12px',
+  //             borderRadius: '30px',
+  //             textAlign: 'center',
+  //             minWidth: '60px'
+  //           }}
+  //         >
+  //           <text style={{ fontSize: '24px', color: 'white' }}>🔖</text>
+  //           <text style={{ fontSize: '12px', display: 'block', color: 'white' }}>
+  //             {currentVideo.saves || 0}
+  //           </text>
+  //         </view>
+  //       </view>
 
-        {/* Next video button */}
-        <view
-          bindtap={() => setCurrentVideoIndex((prev) => (prev + 1) % videos.length)}
-          style={{
-            position: 'absolute',
-            bottom: '50px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: '#ff0050',
-            padding: '15px 30px',
-            borderRadius: '25px'
-          }}
-        >
-          <text style={{ color: 'white', fontWeight: 'bold' }}>Next Video</text>
-        </view>
-      </view>
-    </CreatorConsumerSwitch>
-  );
+  //       {/* Next video button */}
+  //       <view
+  //         bindtap={() => setCurrentVideoIndex((prev) => (prev + 1) % videos.length)}
+  //         style={{
+  //           position: 'absolute',
+  //           bottom: '50px',
+  //           left: '50%',
+  //           transform: 'translateX(-50%)',
+  //           backgroundColor: '#ff0050',
+  //           padding: '15px 30px',
+  //           borderRadius: '25px'
+  //         }}
+  //       >
+  //         <text style={{ color: 'white', fontWeight: 'bold' }}>Next Video</text>
+  //       </view>
+  //     </view>
+  //   </CreatorConsumerSwitch>
+  // );
+  <CreatorConsumerSwitch videos = {videos}>
+    <VideoContent pictureData={furnituresPictures}/>
+  </CreatorConsumerSwitch>
+
+    );
 }
