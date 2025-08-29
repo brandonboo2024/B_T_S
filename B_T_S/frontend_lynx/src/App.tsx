@@ -32,7 +32,7 @@ export function App(props: {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('http://192.168.1.68:5000/api/feed')
+      const response = await fetch('http://172.20.10.3:5000/api/feed')
 
       if(!response.ok){
         throw new Error(`Server error: ${response.status}`)
