@@ -1,20 +1,11 @@
-import { useCallback, useState } from '@lynx-js/react'
-
-interface Video {
-  id: number
-  author: string
-  description: string
-  likes: number
-  comments: number
-  shares: number
-  category: string
-}
+import {useEffect, useRef,  useCallback, useState } from '@lynx-js/react'
+import  CreatorConsumerSwitch from './CreatorConsumerSwitch.js'
 
 interface AppProps {
   onRender?: () => void
 }
 
-export function App({ onRender, /*videos, setVideos, loading */}: AppProps) {
+export function App({onRender}: AppProps) {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(true);
@@ -22,7 +13,7 @@ export function App({ onRender, /*videos, setVideos, loading */}: AppProps) {
   const watchStartTime = useRef<number>();
   const videoWatchTimes = useRef<number[]>([]);
 
-  const API_BASE_URL = 'http://192.168.1.16:3001'; // Update with your IP
+  const API_BASE_URL = 'http://192.168.1.98:3001'; // Update with your IP
 
   interface Video{
     id: number;
