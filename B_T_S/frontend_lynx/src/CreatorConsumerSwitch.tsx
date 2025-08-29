@@ -114,34 +114,20 @@ function CreatorOverlay({
           borderLeft: '1px solid #eee',
           display: 'flex',
           flexDirection: 'column',
+          paddingTop: '40px',
         }}
       >
-        {/* Header */}
+        {/* Header - REMOVED CLOSE BUTTON */}
         <view
           style={{
             padding: '14px 16px',
             borderBottom: '1px solid #eee',
             backgroundColor: '#fff',
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
           }}
         >
           <text style={{ fontWeight: '600', fontSize: '16px', color: '#111' }}>
             Creator Dashboard
           </text>
-          <view
-            bindtap={onClose}
-            style={{
-              padding: '6px 10px',
-              borderRadius: '6px',
-              border: '1px solid #ddd',
-              backgroundColor: '#fafafa',
-            }}
-          >
-            <text style={{ color: '#000' }}>Close</text>
-          </view>
         </view>
 
         {/* Totals */}
@@ -159,36 +145,43 @@ function CreatorOverlay({
           <Stat label="Est. Revenue" value={formatCurrency(totalRevenue)} />
         </view>
 
-        {/* Per-video list */}
-        <view style={{ flex: 1, overflow: 'auto' }}>
-          {rows.map((r) => (
+        {/* Per-video list with headers */}
+        <view style={{ flex: 1, overflow: 'auto', padding: '0 16px' }}>
+          <view style={{
+            display: 'flex',
+            flexDirection: 'row',
+            padding: '12px 0',
+            borderBottom: '2px solid #333',
+            fontWeight: '600',
+            color: '#666'
+          }}>
+            <text style={{ flex: 1, color: '#666' }}>Video</text>
+            <text style={{ width: '60px', textAlign: 'right', color: '#666' }}>Likes</text>
+            <text style={{ width: '80px', textAlign: 'right', color: '#666' }}>Comments</text>
+            <text style={{ width: '90px', textAlign: 'right', color: '#666' }}>Revenue</text>
+          </view>
+          
+          {rows.map((r, index) => (
             <view
               key={r.id}
               style={{
                 display: 'flex',
                 flexDirection: 'row',
-                justifyContent: 'space-between',
-                padding: '12px 16px',
+                alignItems: 'center',
+                padding: '12px 0',
                 borderBottom: '1px solid #f2f2f2',
               }}
             >
-              <view style={{ flex: 1, paddingRight: '8px' }}>
-                <text style={{ color: '#111', fontWeight: '500' }}>
-                  {r.title ?? r.id}
-                </text>
-                {r.creator && (
-                  <text style={{ fontSize: '12px', color: '#777' }}>
-                    {' '}by {r.creator}
-                  </text>
-                )}
-              </view>
-              <text style={{ width: '70px', textAlign: 'right' }}>
+              <text style={{ flex: 1, color: '#111', fontWeight: '500' }}>
+                {r.title || `Video ${index + 1}`}
+              </text>
+              <text style={{ width: '60px', textAlign: 'right', color: '#333' }}>
                 {formatNumber(r.likes)}
               </text>
-              <text style={{ width: '90px', textAlign: 'right' }}>
+              <text style={{ width: '80px', textAlign: 'right', color: '#333' }}>
                 {formatNumber(r.comments)}
               </text>
-              <text style={{ width: '110px', textAlign: 'right', fontWeight: '600' }}>
+              <text style={{ width: '90px', textAlign: 'right', fontWeight: '600', color: '#000' }}>
                 {formatCurrency(r.revenue)}
               </text>
             </view>
