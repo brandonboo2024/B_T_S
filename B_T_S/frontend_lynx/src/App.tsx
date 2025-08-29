@@ -1,7 +1,20 @@
-import { useState, useEffect, useRef } from '@lynx-js/react';
-import CreatorConsumerSwitch from './CreatorConsumerSwitch.js';
+import { useCallback, useState } from '@lynx-js/react'
 
-export default function App() {
+interface Video {
+  id: number
+  author: string
+  description: string
+  likes: number
+  comments: number
+  shares: number
+  category: string
+}
+
+interface AppProps {
+  onRender?: () => void
+}
+
+export function App({ onRender, /*videos, setVideos, loading */}: AppProps) {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(true);
