@@ -1,124 +1,249 @@
-import { useCallback, useEffect, useState } from '@lynx-js/react'
+// src/CreatorConsumerSwitch.tsx
+import { useMemo, useState } from '@lynx-js/react';
 
-import './App.css'
-import arrow from './assets/arrow.png'
-import lynxLogo from './assets/lynx-logo.png'
-import reactLynxLogo from './assets/react-logo.png'
+export type VideoMeta = {
+  id: string;
+  title?: string;
+  creator?: string;
+  likes: number;
+  comments: number;
+};
 
-export function App(props: {
-  onRender?: () => void
+const CREATOR_SHARE = 0.55;
+const VALUE_PER_ENGAGEMENT = 0.015;
+
+function computeProposedRevenue(v: VideoMeta): number {
+  const engagement = v.likes + 2 * v.comments;
+  const gross = engagement * VALUE_PER_ENGAGEMENT;
+  return CREATOR_SHARE * gross;
+}
+
+export default function ModeShell({
+  children,
+  videos,
+}: {
+  children: any;
+  videos: VideoMeta[];
 }) {
-  const [alterLogo, setAlterLogo] = useState(false)
-  const [backendStatus, setBackendStatus] = useState<string>('Checking...')
-  const [apiData, setApiData] = useState<any>(null)
-
-  useEffect(() => {
-    console.info('Hello, ReactLynx')
-    checkBackendConnection()
-  }, [])
-
-  props.onRender?.()
-
-  const checkBackendConnection = useCallback(async () => {
-    console.log('Attempting to connect to backend...')
-    try {
-      const response = await fetch('http://localhost:3001/api/test')
-      console.log('Response status:', response.status)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      console.log('Backend data received:', data)
-      setBackendStatus(`✅ Connected: ${data.message}`)
-      setApiData(data)
-    } catch (error: any) {
-      console.error('Connection failed:', error)
-      setBackendStatus(`❌ Connection failed: ${error.message}`)
-    }
-  }, [])
-
-  const sendDataToBackend = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          data: 'Hello from ReactLynx frontend!',
-          timestamp: new Date().toISOString()
-        })
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result = await response.json()
-      console.log('Backend response:', result)
-      setApiData(result)
-      setBackendStatus(`✅ Data sent successfully`)
-    } catch (error: any) {
-      console.error('Error sending data:', error)
-      setBackendStatus(`❌ Failed to send data: ${error.message}`)
-    }
-  }, [])
-
-  const onTap = useCallback(() => {
-    setAlterLogo(prevAlterLogo => !prevAlterLogo)
-  }, [])
+  const [mode, setMode] = useState<'consumer' | 'creator'>('consumer');
+  const rows = useMemo(
+    () => videos.map((v) => ({ ...v, revenue: computeProposedRevenue(v) })),
+    [videos]
+  );
 
   return (
-    <view>
-      <view className='Background' />
-      <view className='App'>
-        <view className='Banner'>
-          <view className='Logo' bindtap={onTap}>
-            {alterLogo
-              ? <image src={reactLynxLogo} className='Logo--react' />
-              : <image src={lynxLogo} className='Logo--lynx' />}
-          </view>
-          <text className='Title'>React</text>
-          <text className='Subtitle'>on Lynx</text>
-        </view>
-        
-        <view className='Content'>
-          <text className='ConnectionStatus'>{backendStatus}</text>
-          
-          {apiData && (
-            <text className='ApiData'>
-              Last response: {new Date(apiData.timestamp || Date.now()).toLocaleTimeString()}
+    <view style={{ position: 'relative', minHeight: '100vh' }}>
+      {/* keep your consumer UI exactly as-is */}
+      <view>{children}</view>
+
+      {/* tiny toggle on top-right */}
+      <view
+        bindtap={() => setMode(mode === 'consumer' ? 'creator' : 'consumer')}
+        style={{
+          position: 'fixed',
+          top: '16px',
+          right: '16px',
+          zIndex: 1000,
+          padding: '8px 12px',
+          borderRadius: '999px',
+          border: '1px solid rgba(0,0,0,0.15)',
+          backgroundColor: 'rgba(255,255,255,0.95)',
+        }}
+      >
+        <text style={{ color: '#000' }}>
+          {mode === 'consumer' ? 'Creator Mode' : 'Consumer Mode'}
+        </text>
+      </view>
+
+      {mode === 'creator' && (
+        <CreatorOverlay rows={rows} onClose={() => setMode('consumer')} />
+      )}
+    </view>
+  );
+}
+
+function CreatorOverlay({
+  rows,
+  onClose,
+}: {
+  rows: Array<VideoMeta & { revenue: number }>;
+  onClose: () => void;
+}) {
+  const totalLikes = rows.reduce((a, r) => a + r.likes, 0);
+  const totalComments = rows.reduce((a, r) => a + r.comments, 0);
+  const totalRevenue = rows.reduce((a, r) => a + r.revenue, 0);
+
+  return (
+    <view
+      style={{
+        position: 'fixed',
+        inset: '0',
+        zIndex: 999,
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+      }}
+    >
+      {/* dim backdrop */}
+      <view
+        bindtap={onClose}
+        style={{
+          position: 'absolute',
+          inset: '0',
+          backgroundColor: 'rgba(0,0,0,0.2)',
+        }}
+      />
+
+      {/* slide-in panel */}
+      <view
+        role="dialog"
+        aria-label="Creator analytics"
+        style={{
+          position: 'relative',
+          height: '100%',
+          width: '100%',
+          maxWidth: '420px',
+          backgroundColor: '#fff',
+          borderLeft: '1px solid #eee',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* header */}
+        <view
+          style={{
+            position: 'sticky',
+            top: '0',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 16px',
+            borderBottom: '1px solid #eee',
+            backgroundColor: '#fff',
+          }}
+        >
+          <view>
+            <text style={{ fontWeight: '600', color: '#000' }}>
+              Creator Dashboard
             </text>
-          )}
-          
-          <view bindtap={checkBackendConnection} className='TestButton'>
-            <text>Test Connection</text>
+            <text style={{ fontSize: '12px', color: '#666' }}>
+              Light analytics overlay
+            </text>
           </view>
-          
-          <view bindtap={sendDataToBackend} className='SendButton'>
-            <text>Send Data</text>
+          <view
+            bindtap={onClose}
+            style={{
+              padding: '6px 10px',
+              borderRadius: '6px',
+              border: '1px solid #ddd',
+              backgroundColor: '#fafafa',
+            }}
+          >
+            <text style={{ color: '#000' }}>Close</text>
           </view>
         </view>
-        
-        <view className='Content'>
-          <image src={arrow} className='Arrow' />
-          <text className='Description'>Tap the logo and have fun!</text>
-          <text className='Hint'>
-            Edit<text
+
+        {/* summary */}
+        <view
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '8px',
+            padding: '12px 16px',
+            borderBottom: '1px solid #eee',
+          }}
+        >
+          <Stat label="Likes" value={formatNumber(totalLikes)} />
+          <Stat label="Comments" value={formatNumber(totalComments)} />
+          <Stat label="Est. Revenue" value={formatCurrency(totalRevenue)} />
+        </view>
+
+        {/* list rows (no <table>, Lynx-safe) */}
+        <view style={{ flex: 1, overflow: 'auto', padding: '6px 0' }}>
+          {rows.map((r) => (
+            <view
+              key={r.id}
               style={{
-                fontStyle: 'italic',
-                color: 'rgba(255, 255, 255, 0.85)',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 16px',
+                borderBottom: '1px solid #f2f2f2',
               }}
             >
-              {' src/App.tsx '}
-            </text>
-            to see updates!
+              <view style={{ flex: 1, paddingRight: '8px' }}>
+                <text style={{ color: '#111' }}>{r.title ?? r.id}</text>
+                {r.creator ? (
+                  <text style={{ fontSize: '12px', color: '#777' }}>
+                    {' '}
+                    by {r.creator}
+                  </text>
+                ) : null}
+              </view>
+
+              <view style={{ width: '70px', textAlign: 'right' }}>
+                <text>{formatNumber(r.likes)}</text>
+              </view>
+              <view style={{ width: '90px', textAlign: 'right' }}>
+                <text>{formatNumber(r.comments)}</text>
+              </view>
+              <view style={{ width: '110px', textAlign: 'right' }}>
+                <text style={{ fontWeight: '600' }}>
+                  {formatCurrency(r.revenue)}
+                </text>
+              </view>
+            </view>
+          ))}
+        </view>
+
+        <view style={{ padding: '10px 16px', borderTop: '1px solid #eee' }}>
+          <text style={{ fontSize: '12px', color: '#666' }}>
+            Proposed = {Math.round(CREATOR_SHARE * 100)}% × ($
+            {VALUE_PER_ENGAGEMENT.toFixed(3)} per like + 2×comment)
           </text>
         </view>
-        <view style={{ flex: 1 }} />
       </view>
     </view>
-  )
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <view
+      style={{
+        border: '1px solid #eee',
+        borderRadius: '12px',
+        padding: '8px 10px',
+        backgroundColor: '#fafafa',
+        flex: 1,
+      }}
+    >
+      <text style={{ fontSize: '11px', color: '#777' }}>{label}</text>
+      <text style={{ fontWeight: '600', color: '#000' }}>{value}</text>
+    </view>
+  );
+}
+
+function formatNumber(n: number) {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(n);
+  } catch {
+    return String(n);
+  }
+}
+function formatCurrency(n: number) {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 2,
+    }).format(n);
+  } catch {
+    return `$${n.toFixed(2)}`;
+  }
 }

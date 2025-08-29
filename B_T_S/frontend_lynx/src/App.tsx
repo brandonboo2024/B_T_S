@@ -1,144 +1,296 @@
-import { useCallback, useEffect, useState } from '@lynx-js/react'
+import { useCallback, useState } from '@lynx-js/react'
 
-import './App.css'
-import arrow from './assets/arrow.png'
-import lynxLogo from './assets/lynx-logo.png'
-import reactLynxLogo from './assets/react-logo.png'
-
-// creating construct for Video
 interface Video {
   id: number
   author: string
   description: string
+  likes: number
+  comments: number
+  shares: number
+  category: string
 }
 
-export function App(props: {
+interface AppProps {
   onRender?: () => void
-}) {
-  const [currentPage, setCurrentPage] = useState('welcome');
-  const [alterLogo, setAlterLogo] = useState(false)
-  const [videos, setVideos] = useState<Video[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  useEffect(() => {
-    console.info('Hello, ReactLynx')
-    fetchVideos()
+}
+
+export function App({ onRender, /*videos, setVideos, loading */}: AppProps) {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
+  const [showTikTok, setShowTikTok] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('')
+
+  const nextVideo = useCallback(() => {
+    setCurrentVideoIndex(prev => (prev + 1) % videos.length)
+  }, [videos.length])
+
+  const likeVideo = useCallback(() => {
+    setVideos(prev => prev.map((video, index) => 
+      index === currentVideoIndex 
+        ? { ...video, likes: video.likes + 1 }
+        : video
+    ))
+  }, [currentVideoIndex, setVideos])
+
+  const startCategory = useCallback((category: string) => {
+    const categoryVideos = videos.filter(v => v.category === category)
+    if (categoryVideos.length > 0) {
+      const firstVideoIndex = videos.findIndex(v => v.category === category)
+      setCurrentVideoIndex(firstVideoIndex)
+    }
+    setSelectedCategory(category)
+    setShowTikTok(true)
+  }, [videos])
+
+  const goBack = useCallback(() => {
+    setShowTikTok(false)
+    setSelectedCategory('')
   }, [])
 
-  const fetchVideos = async () => {
-    try{
-      setLoading(true)
-      setError(null)
+  onRender?.()
 
-      const response = await fetch('http://192.168.1.68:5000/api/feed')
-
-      if(!response.ok){
-        throw new Error(`Server error: ${response.status}`)
-      }
-      
-      const result = await response.json()
-
-      if(result.success) {
-        setVideos(result.data) // save videos to state
-        console.log('Videos loaded:', result.data)
-      }else{
-        throw new Error('Failed to load videos')
-      }
-    }catch(err) {
-      console.error('Complete and total failure:', err)
-      setError(String(err))
-    } finally{
-      setLoading(false)
-    }
+  if (loading) {
+    return (
+      <view style={{ padding: '20px', textAlign: 'center' }}>
+        <text>Loading TikTok...</text>
+      </view>
+    )
   }
 
-  //  Function for the TikTok feed screen
-  const TikTokFeed = () => (
-    <view style={{ padding: "20px" }}>
-      <text style={{ fontSize: "24px", fontWeight: 'bold', marginBottom: "20px" }}>
-        TikTok Feed
-      </text>
-      
-      {videos.map(video => (
-        <view key={video.id} style={{ 
-          marginBottom: "20px", 
-          padding: "15px", 
-          backgroundColor: '#f0f0f0',
-          borderRadius: "10px" 
-        }}>
-          <text style={{ fontWeight: 'bold', fontSize: "18px" }}>
-            @{video.author}
-          </text>
-          <text style={{ marginTop: "5px" }}>
-            {video.description}
-          </text>
-          <text style={{ color: 'gray', marginTop: "10px" }}>
-            ❤️ 1.2K likes · 💬 45 comments
-          </text>
-        </view>
-      ))}
-    </view>
-  );
+  if (!showTikTok) {
+    return (
+      <view style={{ 
+        padding: '20px', 
+        backgroundColor: '#000', 
+        minHeight: '100vh',
+        color: 'white'
+      }}>
+        <text style={{ 
+          fontSize: '24px', 
+          fontWeight: 'bold', 
+          marginBottom: '20px',
+          textAlign: 'center',
+          display: 'block'
+        }}>TikTok Simulation</text>
+        
+        <text style={{ 
+          fontSize: '16px', 
+          marginBottom: '30px',
+          textAlign: 'center',
+          display: 'block',
+          color: '#888'
+        }}>Choose a video category:</text>
 
-  // 👇 Add this function for the welcome screen
-  const WelcomeScreen = () => (
-    <view>
-      <view className='Content'>
-        <image src={arrow} className='Arrow' />
-        <text className='Description'>Tap the logo to start the simulation!</text>
-      </view>
-
-      {/* 👇 API STATUS DISPLAY */}
-      <view style={{ padding: "10px" }}>
-        {loading && <text>Loading videos...</text>}
-        {error && <text>Error: {error}</text>}
-        {!loading && !error && videos.length > 0 && (
-          <view>
-            <text>✅ Loaded {videos.length} videos:</text>
-            {videos.map(video => (
-              <view key={video.id} style={{ marginLeft: "10px", marginTop: "5px" }}>
-                <text>ID: {video.id}</text>
-                <text>Title: {video.author}</text>
-                <text>Description: {video.description}</text>
-              </view>
-            ))}
+        <view style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <view 
+            bindtap={() => startCategory('Dance')}
+            style={{
+              backgroundColor: '#ff0050',
+              padding: '15px',
+              borderRadius: '10px',
+              textAlign: 'center'
+            }}
+          >
+            <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
+              Dance Videos
+            </text>
+            <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
+              Trending dance moves and choreography
+            </text>
           </view>
-        )}
-        {!loading && !error && videos.length === 0 && (
-          <text>No videos found</text>
-        )}
+
+          <view 
+            bindtap={() => startCategory('Cooking')}
+            style={{
+              backgroundColor: '#ff6b35',
+              padding: '15px',
+              borderRadius: '10px',
+              textAlign: 'center'
+            }}
+          >
+            <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
+              Cooking Hacks
+            </text>
+            <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
+              Quick recipes and kitchen tips
+            </text>
+          </view>
+
+          <view 
+            bindtap={() => startCategory('Comedy')}
+            style={{
+              backgroundColor: '#4ecdc4',
+              padding: '15px',
+              borderRadius: '10px',
+              textAlign: 'center'
+            }}
+          >
+            <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
+              Comedy
+            </text>
+            <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
+              Funny videos and memes
+            </text>
+          </view>
+
+          <view 
+            bindtap={() => startCategory('Fashion')}
+            style={{
+              backgroundColor: '#9b59b6',
+              padding: '15px',
+              borderRadius: '10px',
+              textAlign: 'center'
+            }}
+          >
+            <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
+              Fashion
+            </text>
+            <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
+              Style inspiration and outfit ideas
+            </text>
+          </view>
+
+          <view 
+            bindtap={() => startCategory('Travel')}
+            style={{
+              backgroundColor: '#3498db',
+              padding: '15px',
+              borderRadius: '10px',
+              textAlign: 'center'
+            }}
+          >
+            <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
+              Travel
+            </text>
+            <text style={{ color: 'white', fontSize: '12px', display: 'block', marginTop: '5px' }}>
+              Amazing destinations and travel tips
+            </text>
+          </view>
+        </view>
       </view>
-    </view>
-  );
+    )
+  }
 
-  props.onRender?.()
+  const currentVideo = videos[currentVideoIndex]
 
-  const onTap = useCallback(() => {
-    'background only'
-    setCurrentPage(prevPage => prevPage === 'welcome' ? 'tiktok' : 'welcome')
-    setAlterLogo(prevAlterLogo => !prevAlterLogo)
-  }, [])
+  if (!currentVideo) {
+    return (
+      <view style={{ padding: '20px', textAlign: 'center', backgroundColor: '#000', minHeight: '100vh', color: 'white' }}>
+        <text>No videos available</text>
+      </view>
+    )
+  }
 
   return (
-    <view>
-      {/* <view className='Background' /> */}
-      <view className='App'>
-        <view className='Banner'>
-          <view className='Logo' bindtap={onTap}>
-            {alterLogo
-              ? <image src={reactLynxLogo} className='Logo--react' />
-              : <image src={lynxLogo} className='Logo--lynx' />}
-          </view>
-          <text className='Title'>TikTok</text>
-          <text className='Subtitle'>on Lynx</text>
+    <view style={{ 
+      backgroundColor: '#000', 
+      minHeight: '100vh', 
+      color: 'white',
+      position: 'relative'
+    }}>
+      {/* Back button */}
+      <view 
+        bindtap={goBack}
+        style={{
+          position: 'absolute',
+          top: '50px',
+          left: '20px',
+          zIndex: 10,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          padding: '10px',
+          borderRadius: '20px'
+        }}
+      >
+        <text style={{ color: 'white', fontSize: '16px' }}>← Back</text>
+      </view>
+
+      {/* Category title */}
+      <view style={{
+        position: 'absolute',
+        top: '50px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 10
+      }}>
+        <text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
+          {selectedCategory}
+        </text>
+      </view>
+
+      {/* Video content */}
+      <view style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: `linear-gradient(135deg, 
+          hsl(${currentVideoIndex * 60}, 70%, 50%) 0%,
+          hsl(${(currentVideoIndex * 60) + 120}, 60%, 40%) 100%)`
+      }}>
+        <view style={{ textAlign: 'center' }}>
+          <text style={{ fontSize: '48px', marginBottom: '20px' }}>📱</text>
+          <text style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>
+            {currentVideo.author}
+          </text>
+          <text style={{ fontSize: '14px', marginBottom: '20px', maxWidth: '80%' }}>
+            {currentVideo.description}
+          </text>
         </view>
-        
-        {/* 👇 THIS IS THE MAGIC PART - SWITCH BETWEEN SCREENS */}
-        {currentPage === 'welcome' ? <WelcomeScreen /> : <TikTokFeed />}
-        
-        <view style={{ flex: 1 }} />
+      </view>
+
+      {/* Action buttons */}
+      <view style={{
+        position: 'absolute',
+        right: '20px',
+        bottom: '150px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        alignItems: 'center'
+      }}>
+        <view bindtap={likeVideo} style={{
+          backgroundColor: 'rgba(255,255,255,0.2)',
+          padding: '10px',
+          borderRadius: '25px',
+          textAlign: 'center',
+          minWidth: '50px'
+        }}>
+          <text style={{ fontSize: '20px' }}>♥</text>
+          <text style={{ fontSize: '12px', display: 'block' }}>
+            {currentVideo.likes.toLocaleString()}
+          </text>
+        </view>
+
+        <view style={{
+          backgroundColor: 'rgba(255,255,255,0.2)',
+          padding: '10px',
+          borderRadius: '25px',
+          textAlign: 'center',
+          minWidth: '50px'
+        }}>
+          <text style={{ fontSize: '20px' }}>💬</text>
+          <text style={{ fontSize: '12px', display: 'block' }}>
+            {currentVideo.comments}
+          </text>
+        </view>
+      </view>
+
+      {/* Next video button */}
+      <view 
+        bindtap={nextVideo}
+        style={{
+          position: 'absolute',
+          bottom: '50px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#ff0050',
+          padding: '15px 30px',
+          borderRadius: '25px'
+        }}
+      >
+        <text style={{ color: 'white', fontWeight: 'bold' }}>Next Video</text>
       </view>
     </view>
   )
-
 }
