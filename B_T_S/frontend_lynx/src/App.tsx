@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from '@lynx-js/react'
-
+import './index.css'
 import './App.css'
 import arrow from './assets/arrow.png'
 import lynxLogo from './assets/lynx-logo.png'
 import reactLynxLogo from './assets/react-logo.png'
+import Gallery from './util/Gallery.js'
+import { furnituresPictures } from './assets/furnitures/furnituresPictures.js'
 
 // creating construct for Video
 interface Video {
@@ -66,19 +68,25 @@ export function App(props: {
           backgroundColor: '#f0f0f0',
           borderRadius: "10px" 
         }}>
-          <text style={{ fontWeight: 'bold', fontSize: "18px" }}>
+          <text style={{color: 'black', fontWeight: 'bold', fontSize: "18px" }}>
             @{video.author}
           </text>
-          <text style={{ marginTop: "5px" }}>
+          <text style={{ color: 'black', marginTop: "5px" }}>
             {video.description}
           </text>
-          <text style={{ color: 'gray', marginTop: "10px" }}>
+          <text style={{ color: 'black', marginTop: "10px" }}>
             ❤️ 1.2K likes · 💬 45 comments
           </text>
         </view>
       ))}
     </view>
   );
+
+  const GalleryScreen = () => (
+    <view>
+    <Gallery pictureData = {furnituresPictures} />
+    </view>
+  ); 
 
   // 👇 Add this function for the welcome screen
   const WelcomeScreen = () => (
@@ -134,7 +142,7 @@ export function App(props: {
         </view>
         
         {/* 👇 THIS IS THE MAGIC PART - SWITCH BETWEEN SCREENS */}
-        {currentPage === 'welcome' ? <WelcomeScreen /> : <TikTokFeed />}
+        {currentPage === 'welcome' ? <GalleryScreen /> : <TikTokFeed />}
         
         <view style={{ flex: 1 }} />
       </view>
