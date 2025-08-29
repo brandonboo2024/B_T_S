@@ -32,7 +32,7 @@ export function App(props: {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('http://172.20.10.3:5000/api/feed')
+      const response = await fetch('http://192.168.1.98:5000/api/feed')
 
       if(!response.ok){
         throw new Error(`Server error: ${response.status}`)
@@ -129,17 +129,12 @@ export function App(props: {
 
   return (
     <view>
-      {/* <view className='Background' /> */}
       <view className='App'>
-        <view className='Banner'>
-          <view className='Logo' bindtap={onTap}>
+          <view style = {{marginTop: "100px" }} className='Logo' bindtap={onTap}>
             {alterLogo
               ? <image src={reactLynxLogo} className='Logo--react' />
               : <image src={lynxLogo} className='Logo--lynx' />}
           </view>
-          <text className='Title'>TikTok</text>
-          <text className='Subtitle'>on Lynx</text>
-        </view>
         
         {/* 👇 THIS IS THE MAGIC PART - SWITCH BETWEEN SCREENS */}
         {currentPage === 'welcome' ? <WelcomeScreen /> : <GalleryScreen />}
