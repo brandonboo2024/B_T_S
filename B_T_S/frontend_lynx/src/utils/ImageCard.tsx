@@ -7,7 +7,7 @@ export default function ImageCard(props: { picture: Picture }) {
     <view className="picture-wrapper">
       <image
         className="image"
-        style={{ width: "100%", aspectRatio: picture.width / picture.height }}
+        style={{ width: "100%", height: "100vh", aspectRatio: picture.width / picture.height }}
         src={picture.src}
       />
     </view>
