@@ -195,7 +195,7 @@ initVideos.forEach(video => {
 });
 
 app.use(cors({
-  origin: ['http://192.168.1.16:3000', 'http://192.168.1.16:3001', 'http://192.168.1.16:5173'],
+  origin: ['http://192.168.1.124:3000', 'http://192.168.1.124:3001', 'http://192.168.1.124:5173'],
   credentials: true
 }));
 
