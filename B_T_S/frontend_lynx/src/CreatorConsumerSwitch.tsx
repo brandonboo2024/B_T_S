@@ -47,7 +47,7 @@ type AnalyticsData = {
   };
 };
 
-const API_BASE_URL = 'http://192.168.1.124:3001'; // Update with your IP
+const API_BASE_URL = 'http://192.168.1.16:3001'; // Update with your IP
 
 function toNum(n: any): number {
   const v = Number(n);
