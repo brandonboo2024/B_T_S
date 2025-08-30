@@ -70,7 +70,7 @@ export const VideoContent = (props: VideoContentProps) => {
     <view className="gallery-wrapper">
       <list
         className="list"
-        list-type="waterfall"
+        list-type="flow"
         column-count={1}
         scroll-orientation="vertical"
         custom-list-name="list-container"
@@ -82,6 +82,7 @@ export const VideoContent = (props: VideoContentProps) => {
               estimated-main-axis-size-px={calculateEstimatedSize(picture.width, picture.height)}
               item-key={"" + index}
               key={"" + index}
+              style = {{height : "100vh", paddingTop : '150px'}}
             >
               <view style={{ flex: 1, position: 'relative' }}>
                 <ImageCard picture={picture} />

@@ -96,16 +96,16 @@ export default function LivestreamContent({
 
       {/* Navigation */}
       <view className='VideoNavigation'>
-        <view className='NavButton' bindtap={prev}><text>Prev</text></view>
-        <view className='NavButton' bindtap={next}><text>Next</text></view>
+        <view style = {{position :'absolute', top: '40vh'}} className='NavButton' bindtap={prev}><text>Prev</text></view>
+        <view style = {{position :'absolute', top: '35vh'}} className='NavButton' bindtap={next}><text>Next</text></view>
       </view>
 
       {/* Toast */}
-      {toast && (
-        <view style={{ position: 'absolute', top: '56px', right: '12px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#fff', padding: '6px 8px', borderRadius: '8px' }}>
+       {toast && (
+        <view style = {{ position: 'absolute', top: '56px', right: '12px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#fff', padding: '6px 8px', borderRadius: '8px' }}>
           <text>{toast}</text>
         </view>
-      )}
+      )} 
     </view>
   )
 }
