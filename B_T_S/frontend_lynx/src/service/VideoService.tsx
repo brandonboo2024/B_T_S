@@ -49,3 +49,60 @@ export const videoService = {
   shareVideo: (videoId: number) => videoService.trackEngagement('share', videoId),
   saveVideo: (videoId: number) => videoService.trackEngagement('save', videoId),
 };
+
+// ✅ NEW: Livestream APIs
+export interface Livestream extends Video { isLive?: boolean }
+
+export const livestreamService = {
+  fetchLivestreams: async (): Promise<Livestream[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/livestreams`);
+      const data = await response.json();
+      return data.success ? data.data : [];
+    } catch (error) {
+      console.error('Failed to fetch livestreams:', error);
+      return [];
+    }
+  },
+
+  trackStreamEngagement: async (type: string, streamId: number, metadata = {}): Promise<any> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/livestreams/engagement`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          streamId,
+          type,
+          userId: 'demo_user',
+          ...metadata
+        })
+      });
+      const data = await response.json();
+      return data.success ? data.currentStats : null;
+    } catch (error) {
+      console.error('Failed to track stream engagement:', error);
+      return null;
+    }
+  },
+
+  donateToStream: async (streamId: number, amount: number = 1): Promise<any> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/livestreams/donate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ streamId, userId: 'demo_user', amount })
+      });
+      const data = await response.json();
+      return data.success ? data : null;
+    } catch (error) {
+      console.error('Failed to donate to stream:', error);
+      return null;
+    }
+  },
+
+  likeStream: (streamId: number) => livestreamService.trackStreamEngagement('like', streamId),
+  commentStream: (streamId: number) => livestreamService.trackStreamEngagement('comment', streamId),
+  shareStream: (streamId: number) => livestreamService.trackStreamEngagement('share', streamId),
+  saveStream: (streamId: number) => livestreamService.trackStreamEngagement('save', streamId),
+};
+
