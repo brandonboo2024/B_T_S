@@ -558,75 +558,114 @@ app.listen(port, '0.0.0.0', () => {
   console.log(`Access from other devices: http://[YOUR-IP]:${port}`);
 });
 
-function calculateDonationSplit(stream) {
-  const creator = dataStore.creators.get(stream.author) || new Creator(stream.author);
-  
-  // Base creator share starts at 45%
-  let creatorShare = 0.45;
-  
-  // Quality metrics adjustments
-  
-  // 1. Interaction per viewer (up to +15%)
-  if (stream.views > 0) {
-    const interactionRate = (stream.likes + stream.comments + stream.shares) / stream.views;
-    // Normal range 0-0.3, capped at 0.5
-    const normalizedInteraction = Math.min(interactionRate / 3, 1);
-    creatorShare += normalizedInteraction * 0.15;
-  }
-  
-  // 2. Mean retention time (up to +10%)
-  const avgWatchTime = stream.watchTimes.length > 0 
-    ? stream.watchTimes.reduce((a,b) => a+b, 0) / stream.watchTimes.length 
-    : 0;
-  const retentionRate = stream.duration > 0 ? avgWatchTime / stream.duration : 0;
-  creatorShare += Math.min(retentionRate, 1) * 0.10;
-  
-  // 3. Low report ratio (up to +5%)
-  const reportRate = stream.views > 0 ? (stream.reports || 0) / stream.views : 0;
-  if (reportRate < 0.01) { // Less than 1% reports
-    creatorShare += 0.05 * (1 - (reportRate / 0.01));
-  }
-  
-  // Penalties
-  if (stream.flagged) {
-    creatorShare -= 0.20; // Flagged content penalty
-  }
-  
-  if (creator.suspended) {
-    creatorShare -= 0.30; // Suspended creator penalty
-  }
-  
-  // Fraud detection penalty
-  const fraudCheck = detectFraud(stream);
-  if (fraudCheck.flagged) {
-    creatorShare -= fraudCheck.riskScore * 0.15; // Up to 15% penalty based on risk
-  }
-  
-  // Apply floor and cap
-  creatorShare = Math.max(0.15, Math.min(0.75, creatorShare));
-  
-  return {
-    platformShare: 1 - creatorShare,
-    creatorShare: creatorShare,
-    breakdown: {
-      base: 0.45,
-      interactionBonus: normalizedInteraction * 0.15,
-      retentionBonus: retentionRate * 0.10,
-      reportBonus: reportRate < 0.01 ? 0.05 * (1 - (reportRate / 0.01)) : 0,
-      penalties: (stream.flagged ? -0.20 : 0) + (creator.suspended ? -0.30 : 0),
-      final: creatorShare
-    }
-  };
+const DONATION_SPLIT = {
+BASE_PLATFORM: 0.35, // was 0.30 → add headroom so weak streams don't default to 75–80% creator share
+IPV_GAIN: 3.0, // steeper sigmoid/tanh for stronger separation
+IPV_BOOST: 0.25, // reduce platform cut when IPV is above expected (up to -25%)
+IPV_PENALTY: 0.30, // increase platform cut when IPV is *below* expected (up to +30%)
+RET_BOOST: 0.15, // reduce platform cut when retention > expected (up to -15%)
+RET_PENALTY: 0.20, // increase when retention < expected (up to +20%)
+CREDIT_BONUS: 0.10, // up to -10% for high creator credit
+REPORT_PENALTY_MAX: 0.15, // up to +15% when report rate ~2%+
+CLAMP_MIN: 0.10, // 10% platform minimum
+CLAMP_MAX: 0.80 // allow higher platform cut for poor streams (was 0.60)
 }
 
+
+function calculateDonationSplit(stream) {
+const creator = dataStore.creators.get(stream.author) || new Creator(stream.author)
+
+
+const views = Math.max(1, stream.views || 0)
+const wLikes = 1, wComments = 2, wShares = 4, wSaves = 1.5
+const ipv = (
+wLikes * (stream.likes || 0) +
+wComments * (stream.comments || 0) +
+wShares * (stream.shares || 0) +
+wSaves * (stream.saves || 0)
+) / views
+
+
+const cat = CONTENT_CATEGORIES[stream.category] || CONTENT_CATEGORIES.ENTERTAINMENT
+const expectedIR = (
+wLikes * (cat.expectedLikeRate || 0.08) +
+wComments * (cat.expectedCommentRate || 0.02) +
+wShares * (REVENUE_CONFIG.HISTORICAL_STATS.meanShareRate || 0.01) +
+wSaves * 0.02
+)
+
+
+// Relative lift vs expectation (can be negative)
+const rel = (ipv - expectedIR) / Math.max(expectedIR, 0.001)
+// Two‑tailed mapping in [-1, 1]
+const tanh = (x) => (Math.exp(x) - Math.exp(-x)) / (Math.exp(x) + Math.exp(-x))
+const relScore = tanh(DONATION_SPLIT.IPV_GAIN * rel) // <0 underperform; >0 outperform
+const ipvBoost = Math.max(0, relScore) // 0..1
+const ipvPenalty = Math.max(0, -relScore) // 0..1
+
+
+// Retention (completion rate) vs expected
+const avgWT = (stream.watchTimes?.length || 0) > 0
+? stream.watchTimes.reduce((a, b) => a + b, 0) / stream.watchTimes.length
+: 0
+const completion = Math.min(stream.duration > 0 ? avgWT / stream.duration : 0, 1)
+const retRel = (completion - (cat.expectedCompletion || 0.45)) / Math.max((cat.expectedCompletion || 0.45), 0.001)
+const retScore = tanh(DONATION_SPLIT.IPV_GAIN * retRel)
+const retBoost = Math.max(0, retScore)
+const retPenalty = Math.max(0, -retScore)
+
+
+// Reports → penalty
+const reportRate = views > 0 ? (stream.reports || 0) / views : 0
+const reportPenalty = Math.min(1, reportRate / 0.02) * DONATION_SPLIT.REPORT_PENALTY_MAX // linear up to 2%
+
+
+// Credit → bonus
+const credit = (creator.creditScore || 0) / 10
+
+
+// Compose platform share
+let platformShare = DONATION_SPLIT.BASE_PLATFORM
+platformShare -= DONATION_SPLIT.IPV_BOOST * ipvBoost
+platformShare += DONATION_SPLIT.IPV_PENALTY * ipvPenalty
+platformShare -= DONATION_SPLIT.RET_BOOST * retBoost
+platformShare += DONATION_SPLIT.RET_PENALTY * retPenalty
+platformShare -= DONATION_SPLIT.CREDIT_BONUS * credit
+platformShare += reportPenalty
+
+
+const fraud = detectFraud(stream)
+if (fraud.flagged) platformShare += 0.20 * Math.min(1, fraud.riskScore || 0)
+if (stream.flagged) platformShare += 0.25
+
+
+platformShare = Math.max(DONATION_SPLIT.CLAMP_MIN, Math.min(DONATION_SPLIT.CLAMP_MAX, platformShare))
+const creatorShare = 1 - platformShare
+
+
+return {
+platformShare,
+creatorShare,
+breakdown: {
+ipv, expectedIR,
+relScore: +relScore.toFixed(3),
+completion: +completion.toFixed(3),
+credit: +credit.toFixed(3),
+reportRate: +reportRate.toFixed(4),
+fraudRisk: +(fraud.riskScore || 0).toFixed(3),
+finalPlatformShare: +platformShare.toFixed(3),
+finalCreatorShare: +creatorShare.toFixed(3)
+}
+}
+}
 // Update the donation endpoint to return the breakdown
 app.post('/api/livestreams/donate', (req, res) => {
   // ... existing validation code ...
-  
+
   const split = calculateDonationSplit(stream);
   const creatorCut = +(amount * split.creatorShare).toFixed(2);
   const platformCut = +(amount - creatorCut).toFixed(2);
-  
+
   // Update donation info
   const d = getDonationInfo(streamId);
   d.count += 1;
@@ -634,14 +673,14 @@ app.post('/api/livestreams/donate', (req, res) => {
   d.creatorTotal = +(d.creatorTotal + creatorCut).toFixed(2);
   d.platformTotal = +(d.platformTotal + platformCut).toFixed(2);
   dataStore.streamDonations.set(streamId, d);
-  
+
   // Calculate updated revenue
   const basePlatformRevenue = calculatePlatformRevenue(stream);
   const creatorSharePercent = calculateCreatorShare(stream, creator);
   const creatorRevenueFromPlatform = basePlatformRevenue * creatorSharePercent;
   const estimatedRevenue = creatorRevenueFromPlatform + d.creatorTotal;
   const platformRevenue = basePlatformRevenue + d.platformTotal;
-  
+
   res.json({
     success: true,
     donation: {
