@@ -212,7 +212,7 @@ export function App(props: { onRender?: () => void}) {
 
   return (
     <view>
-      <BackButton top={12} />
+      <BackButton top={56} />
       <CreatorConsumerSwitch videos={videos}>
         <VideoContent
           pictureData={furnituresPictures}

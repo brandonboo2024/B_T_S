@@ -99,19 +99,19 @@ class Creator {
 // ---------------------------------------------------------
 const initVideos = [
   {
-    id: 1, author: '@johndoe', description: 'Amazing dance moves!', category: 'ENTERTAINMENT', duration: 60,
-    likes: 15000, comments: 2000, views: 50000, shares: 10000, saves: 10000, reports: 14,
-    watchTimes: [], totalWatchTime: 2_000_000, uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now()
+    id: 1, author: '@johndoe', description: 'im a gamer', category: 'ENTERTAINMENT', duration: 60,
+    likes: 10000, comments: 500, views: 2500000, shares: 85, saves: 10, reports: 34,
+    watchTimes: [], totalWatchTime: 70000, uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now()
   },
   {
-    id: 2, author: '@janesmith', description: 'Cooking hack', category: 'LIFESTYLE', duration: 45,
-    likes: 0, comments: 0, views: 0, shares: 0, saves: 0, reports: 0,
-    watchTimes: [], totalWatchTime: 0, uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now()
+    id: 2, author: '@janesmith', description: 'WHAT IN TINY TOSS TARNATION', category: 'LIFESTYLE', duration: 45,
+    likes: 250000, comments: 49420, views: 2500000, shares: 98000, saves: 15000, reports: 14,
+    watchTimes: [], totalWatchTime: 7500000, uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now()
   },
   {
     id: 3, author: '@funnyguy', description: 'Hilarious cat video', category: 'ENTERTAINMENT', duration: 15,
-    likes: 0, comments: 0, views: 0, shares: 0, saves: 0, reports: 0,
-    watchTimes: [], totalWatchTime: 0, uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now()
+    likes: 5000, comments: 5000, views: 5500, shares: 4500, saves: 5000, reports: 200,
+    watchTimes: [], totalWatchTime: 80000, uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now()
   }
 ];
 
@@ -269,17 +269,17 @@ function calculateCurrentCreatorRevenue(video) {
 const initLivestreams = [
   {
     id: 101, author: '@livechef', description: 'Live: 10-minute ramen challenge 🍜', category: 'LIFESTYLE', duration: 300,
-    likes: 1200, comments: 180, views: 4800, shares: 220, saves: 90, reports: 0, watchTimes: [], totalWatchTime: 180000,
+    likes: 900, comments: 180, views: 4800, shares: 220, saves: 90, reports: 0, watchTimes: [], totalWatchTime: 180000,
     uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now(), isLive: true
   },
   {
     id: 102, author: '@pro_gamer', description: 'Live: speedrunning classics 🎮', category: 'GAMING', duration: 240,
-    likes: 300, comments: 120, views: 2100, shares: 80, saves: 20, reports: 0, watchTimes: [], totalWatchTime: 72000,
+    likes: 20, comments: 10, views: 1100, shares: 8, saves: 2, reports: 14, watchTimes: [], totalWatchTime: 32000,
     uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now(), isLive: true
   },
   {
     id: 103, author: '@EYEMASKAM', description: 'cleaning some dough iykyk', category: 'EDUCATION', duration: 240,
-    likes: 1400, comments: 1100, views: 1500, shares: 1100, saves: 1450, reports: 200, watchTimes: [], totalWatchTime: 10000,
+    likes: 1400, comments: 1100, views: 1500, shares: 1100, saves: 1450, reports: 200, watchTimes: [], totalWatchTime: 100000,
     uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now(), isLive: true
   },
 ];
