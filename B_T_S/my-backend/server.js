@@ -127,7 +127,7 @@ initVideos.forEach(video => {
 // Middleware
 // ---------------------------------------------------------
 app.use(cors({
-  origin: ['http://192.168.1.124:3000', 'http://192.168.1.124:3001', 'http://192.168.1.124:5173'],
+  origin: ['http://192.168.1.16:3000', 'http://192.168.1.16:3001', 'http://192.168.1.16:5173'],
   credentials: true
 }));
 app.use(express.json());
@@ -275,6 +275,11 @@ const initLivestreams = [
   {
     id: 102, author: '@pro_gamer', description: 'Live: speedrunning classics 🎮', category: 'GAMING', duration: 240,
     likes: 300, comments: 120, views: 2100, shares: 80, saves: 20, reports: 0, watchTimes: [], totalWatchTime: 72000,
+    uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now(), isLive: true
+  },
+  {
+    id: 103, author: '@EYEMASKAM', description: 'cleaning some dough iykyk', category: 'EDUCATION', duration: 240,
+    likes: 1400, comments: 1100, views: 1500, shares: 1100, saves: 1450, reports: 200, watchTimes: [], totalWatchTime: 10000,
     uniqueViewers: new Set(), qualityScore: 0, flagged: false, createdAt: Date.now(), isLive: true
   },
 ];
