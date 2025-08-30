@@ -1,15 +1,17 @@
 import "../index.css";
 import type { Picture } from "../assets/furnitures/furnituresPictures.jsx";
+import LikeIcon from "./LikeIcon.jsx";
 
-export default function ImageCard(props: { picture: Picture }) {
+export default function LikeImageCard(props: { picture: Picture }) {
   const { picture } = props;
+
   return (
     <view className="picture-wrapper">
       <image
-        className="image"
-        style={{ width: "100%", height: "100%", aspectRatio: picture.width / picture.height }}
+        style={{ width: "100%", aspectRatio: picture.width / picture.height }}
         src={picture.src}
       />
+      <LikeIcon />
     </view>
   );
 }

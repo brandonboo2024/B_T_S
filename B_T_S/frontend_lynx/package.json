@@ -9,7 +9,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@lynx-js/react": "^0.112.4"
+    "@lynx-js/react": "^0.112.4",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@lynx-js/preact-devtools": "^5.0.1-6664329",
