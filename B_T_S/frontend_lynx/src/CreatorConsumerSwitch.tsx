@@ -474,29 +474,6 @@ function CreatorOverlay({
             </view>
           ))}
         </view>
-
-        {/* Algorithm Info */}
-        <view style={{ 
-          padding: '10px 16px', 
-          borderTop: '1px solid #eee',
-          backgroundColor: '#f5f5f5'
-        }}>
-          <text style={{ fontSize: '11px', color: '#666', marginBottom: '4px', fontWeight: '600' }}>
-            Revenue Algorithm:
-          </text>
-          <text style={{ fontSize: '10px', color: '#999', fontFamily: 'monospace' }}>
-            √(V×k) + k₁×log(V) + √(WT×k) + k₁×log(WT)
-          </text>
-          <text style={{ fontSize: '9px', color: '#999', marginTop: '4px' }}>
-            • Views & Watch Time weighted equally
-          </text>
-          <text style={{ fontSize: '9px', color: '#999' }}>
-            • Creator Share: 30-70% (quality + credit based)
-          </text>
-          <text style={{ fontSize: '9px', color: '#999' }}>
-            • Statistical fraud detection (Z-score + velocity + patterns)
-          </text>
-        </view>
       </view>
     </view>
   );
