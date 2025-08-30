@@ -570,7 +570,7 @@ function calculateDonationSplit(stream) {
   if (stream.views > 0) {
     const interactionRate = (stream.likes + stream.comments + stream.shares) / stream.views;
     // Normal range 0-0.3, capped at 0.5
-    const normalizedInteraction = Math.min(interactionRate / 0.3, 1);
+    const normalizedInteraction = Math.min(interactionRate / 3, 1);
     creatorShare += normalizedInteraction * 0.15;
   }
   
