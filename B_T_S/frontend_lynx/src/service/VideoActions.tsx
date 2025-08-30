@@ -102,7 +102,14 @@ export function useLivestreamActions() {
   const commentStream = useCallback(async (streamId: number) => trackStreamEngagement('comment', streamId), [trackStreamEngagement])
   const shareStream = useCallback(async (streamId: number) => trackStreamEngagement('share', streamId), [trackStreamEngagement])
   const saveStream = useCallback(async (streamId: number) => trackStreamEngagement('save', streamId), [trackStreamEngagement])
-  const donateToLivestream = useCallback(async (streamId: number, amount: number = 1) => livestreamService.donateToStream(streamId, amount), [])
+  const donateToLivestream = useCallback(async (streamId: number, amount: number = 1) => {
+const data = await livestreamService.donateToStream(streamId, amount)
+// Merge server-calculated currentStats so revenue/metrics refresh in Creator view
+if (data?.currentStats) {
+setStreams(prev => prev.map(s => (s.id === streamId ? { ...s, ...data.currentStats } : s)))
+}
+return data
+}, [])
 
   return { streams, loading, currentStreamIndex, setCurrentStreamIndex, watchStartTime, streamWatchTimes, fetchStreams, trackStreamEngagement, trackWatchTime, likeStream, commentStream, shareStream, saveStream, donateToLivestream }
 }

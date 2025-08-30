@@ -102,7 +102,7 @@ export default function LivestreamContent({
 
       {/* Toast */}
       {toast && (
-        <view style={{ position: 'absolute', top: '56px', right: '12px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#fff', padding: '6px 8px', borderRadius: '8px' }}>
+        <view style={{ position: 'absolute', top: '145px', right: '12px', backgroundColor: 'rgba(0,0,0,0.7)', color: '#fff', padding: '6px 8px', borderRadius: '8px' }}>
           <text>{toast}</text>
         </view>
       )}

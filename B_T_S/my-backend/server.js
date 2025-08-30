@@ -552,3 +552,108 @@ app.listen(port, '0.0.0.0', () => {
   console.log(`Enhanced Value-Sharing Server running on http://0.0.0.0:${port}`);
   console.log(`Access from other devices: http://[YOUR-IP]:${port}`);
 });
+
+function calculateDonationSplit(stream) {
+  const creator = dataStore.creators.get(stream.author) || new Creator(stream.author);
+  
+  // Base creator share starts at 45%
+  let creatorShare = 0.45;
+  
+  // Quality metrics adjustments
+  
+  // 1. Interaction per viewer (up to +15%)
+  if (stream.views > 0) {
+    const interactionRate = (stream.likes + stream.comments + stream.shares) / stream.views;
+    // Normal range 0-0.3, capped at 0.5
+    const normalizedInteraction = Math.min(interactionRate / 0.3, 1);
+    creatorShare += normalizedInteraction * 0.15;
+  }
+  
+  // 2. Mean retention time (up to +10%)
+  const avgWatchTime = stream.watchTimes.length > 0 
+    ? stream.watchTimes.reduce((a,b) => a+b, 0) / stream.watchTimes.length 
+    : 0;
+  const retentionRate = stream.duration > 0 ? avgWatchTime / stream.duration : 0;
+  creatorShare += Math.min(retentionRate, 1) * 0.10;
+  
+  // 3. Low report ratio (up to +5%)
+  const reportRate = stream.views > 0 ? (stream.reports || 0) / stream.views : 0;
+  if (reportRate < 0.01) { // Less than 1% reports
+    creatorShare += 0.05 * (1 - (reportRate / 0.01));
+  }
+  
+  // Penalties
+  if (stream.flagged) {
+    creatorShare -= 0.20; // Flagged content penalty
+  }
+  
+  if (creator.suspended) {
+    creatorShare -= 0.30; // Suspended creator penalty
+  }
+  
+  // Fraud detection penalty
+  const fraudCheck = detectFraud(stream);
+  if (fraudCheck.flagged) {
+    creatorShare -= fraudCheck.riskScore * 0.15; // Up to 15% penalty based on risk
+  }
+  
+  // Apply floor and cap
+  creatorShare = Math.max(0.15, Math.min(0.75, creatorShare));
+  
+  return {
+    platformShare: 1 - creatorShare,
+    creatorShare: creatorShare,
+    breakdown: {
+      base: 0.45,
+      interactionBonus: normalizedInteraction * 0.15,
+      retentionBonus: retentionRate * 0.10,
+      reportBonus: reportRate < 0.01 ? 0.05 * (1 - (reportRate / 0.01)) : 0,
+      penalties: (stream.flagged ? -0.20 : 0) + (creator.suspended ? -0.30 : 0),
+      final: creatorShare
+    }
+  };
+}
+
+// Update the donation endpoint to return the breakdown
+app.post('/api/livestreams/donate', (req, res) => {
+  // ... existing validation code ...
+  
+  const split = calculateDonationSplit(stream);
+  const creatorCut = +(amount * split.creatorShare).toFixed(2);
+  const platformCut = +(amount - creatorCut).toFixed(2);
+  
+  // Update donation info
+  const d = getDonationInfo(streamId);
+  d.count += 1;
+  d.total = +(d.total + amount).toFixed(2);
+  d.creatorTotal = +(d.creatorTotal + creatorCut).toFixed(2);
+  d.platformTotal = +(d.platformTotal + platformCut).toFixed(2);
+  dataStore.streamDonations.set(streamId, d);
+  
+  // Calculate updated revenue
+  const basePlatformRevenue = calculatePlatformRevenue(stream);
+  const creatorSharePercent = calculateCreatorShare(stream, creator);
+  const creatorRevenueFromPlatform = basePlatformRevenue * creatorSharePercent;
+  const estimatedRevenue = creatorRevenueFromPlatform + d.creatorTotal;
+  const platformRevenue = basePlatformRevenue + d.platformTotal;
+  
+  res.json({
+    success: true,
+    donation: {
+      amount: +amount,
+      creatorCut,
+      platformCut,
+      creatorSharePercent: +(split.creatorShare * 100).toFixed(1),
+      platformSharePercent: +(split.platformShare * 100).toFixed(1),
+      breakdown: split.breakdown // Include for transparency
+    },
+    currentStats: {
+      ...stream,
+      estimatedRevenue: estimatedRevenue.toFixed(3),
+      platformRevenue: platformRevenue.toFixed(3),
+      donationCount: d.count,
+      donationCreatorTotal: d.creatorTotal.toFixed(2),
+      donationPlatformTotal: d.platformTotal.toFixed(2)
+    }
+  });
+});

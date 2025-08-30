@@ -41,6 +41,28 @@ export function App(props: { onRender?: () => void}) {
   // NEW: which feed to render
   const [feed, setFeed] = useState<'videos' | 'livestreams'>('videos')
 
+  // Back button action (shared)
+  const goHome = () => { setShowMenu(true); setFeed('videos'); }
+
+  // Small pill back button (fixed positioning)
+  const BackButton = ({ top = 12 }: { top?: number }) => (
+    <view
+      bindtap={goHome}
+      style={{
+        position: 'fixed',
+        top: `${top}px`,
+        left: '12px',
+        zIndex: 2147483647,
+        padding: '8px 14px',
+        borderRadius: '999px',
+        border: '1px solid rgba(0,0,0,0.15)',
+        backgroundColor: 'rgba(255,255,255,0.95)'
+      }}
+    >
+      <text style={{ color: '#000', fontSize: '14px', fontWeight: '600' }}>← Back</text>
+    </view>
+  )
+
   // ---- original video watch-time effect (kept) ----
   useEffect(() => {
     if (feed !== 'videos') return
@@ -156,18 +178,22 @@ export function App(props: { onRender?: () => void}) {
     }
 
     return (
-      <CreatorConsumerSwitch videos={streams}>
-        <LivestreamContent
-          streams={streams}
-          currentStreamIndex={currentStreamIndex}
-          setCurrentStreamIndex={setCurrentStreamIndex}
-          likeStream={likeStream}
-          commentStream={commentStream}
-          shareStream={shareStream}
-          saveStream={saveStream}
-          donateToLivestream={donateToLivestream}
-        />
-      </CreatorConsumerSwitch>
+      <view>
+        {/* Back sits below the LIVE badge to avoid overlap */}
+        <BackButton top={56} />
+        <CreatorConsumerSwitch videos={streams}>
+          <LivestreamContent
+            streams={streams}
+            currentStreamIndex={currentStreamIndex}
+            setCurrentStreamIndex={setCurrentStreamIndex}
+            likeStream={likeStream}
+            commentStream={commentStream}
+            shareStream={shareStream}
+            saveStream={saveStream}
+            donateToLivestream={donateToLivestream}
+          />
+        </CreatorConsumerSwitch>
+      </view>
     )
   }
 
@@ -185,17 +211,20 @@ export function App(props: { onRender?: () => void}) {
   }
 
   return (
-    <CreatorConsumerSwitch videos={videos}>
-      <VideoContent
-        pictureData={furnituresPictures}
-        videos={videos}
-        currentVideoIndex={currentVideoIndex}
-        setCurrentVideoIndex={setCurrentVideoIndex}
-        likeVideo={likeVideo}
-        commentVideo={commentVideo}
-        shareVideo={shareVideo}
-        saveVideo={saveVideo}
-      />
-    </CreatorConsumerSwitch>
+    <view>
+      <BackButton top={12} />
+      <CreatorConsumerSwitch videos={videos}>
+        <VideoContent
+          pictureData={furnituresPictures}
+          videos={videos}
+          currentVideoIndex={currentVideoIndex}
+          setCurrentVideoIndex={setCurrentVideoIndex}
+          likeVideo={likeVideo}
+          commentVideo={commentVideo}
+          shareVideo={shareVideo}
+          saveVideo={saveVideo}
+        />
+      </CreatorConsumerSwitch>
+    </view>
   )
 }
