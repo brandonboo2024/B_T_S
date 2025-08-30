@@ -117,3 +117,97 @@ text {
   margin: 5px;
   color: rgba(255, 255, 255, 0.65);
 }
+
+.TikTokContainer {
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+  background: black;
+  display: flex;
+  overflow: hidden;
+}
+
+.VideoContainer {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+}
+
+.VideoPlaceholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.VideoTitle {
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.SideActions {
+  position: absolute;
+  right: 15px;
+  bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ActionButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255,255,255,0.2);
+  border-radius: 25px;
+  padding: 10px;
+}
+
+.ActionIcon {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.ActionCount {
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+.BottomInfo {
+  position: absolute;
+  bottom: 20px;
+  left: 15px;
+  max-width: 70%;
+}
+
+.Username {
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.Description {
+  color: white;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.VideoNavigation {
+  position: absolute;
+  right: 50%;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.NavButton {
+  background: rgba(255,255,255,0.3);
+  border-radius: 20px;
+  padding: 10px 15px;
+}
