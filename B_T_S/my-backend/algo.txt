@@ -1,4 +1,4 @@
-// Enhanced server.js with FIXED revenue calculation
+// Enhanced server.js with improved value-sharing algorithm
 const express = require('express');
 const cors = require('cors');
 
@@ -8,10 +8,10 @@ const port = process.env.PORT || 3001;
 // Constants for revenue calculation
 const REVENUE_CONFIG = {
   // Revenue formula constants
-  K_VIEWS: 0.00003,          // k for views
-  K1_VIEWS: 0.001,           // k1 for log(views)
-  K_WATCHTIME: 0.0000006,     // k for watchtime
-  K1_WATCHTIME: 0.001,       // k1 for log(watchtime)
+  K_VIEWS: 0.001,          // k for views
+  K1_VIEWS: 0.5,           // k1 for log(views)
+  K_WATCHTIME: 0.0005,     // k for watchtime
+  K1_WATCHTIME: 0.3,       // k1 for log(watchtime)
   
   MIN_CREATOR_SHARE: 0.30,
   MAX_CREATOR_SHARE: 0.70,
@@ -129,17 +129,17 @@ const initVideos = [
     author: '@johndoe', 
     description: 'Amazing dance moves!',
     category: 'ENTERTAINMENT', // Dummy category assignment
-    duration: 60,
-    likes: 15000, 
-    comments: 2000, 
-    views: 50000, 
-    shares: 10000, 
-    saves: 10000,
-    reports: 14,
+    duration: 30,
+    likes: 0, 
+    comments: 0, 
+    views: 0, 
+    shares: 0, 
+    saves: 0,
+    reports: 0,
     watchTimes: [],
-    totalWatchTime: 2000000,
+    totalWatchTime: 0,
     uniqueViewers: new Set(),
-    // REMOVED: revenue: 0,  // Don't store revenue anymore
+    revenue: 0,
     qualityScore: 0,
     flagged: false,
     createdAt: Date.now()
@@ -159,7 +159,7 @@ const initVideos = [
     watchTimes: [],
     totalWatchTime: 0,
     uniqueViewers: new Set(),
-    // REMOVED: revenue: 0,  // Don't store revenue anymore
+    revenue: 0,
     qualityScore: 0,
     flagged: false,
     createdAt: Date.now()
@@ -179,7 +179,7 @@ const initVideos = [
     watchTimes: [],
     totalWatchTime: 0,
     uniqueViewers: new Set(),
-    // REMOVED: revenue: 0,  // Don't store revenue anymore
+    revenue: 0,
     qualityScore: 0,
     flagged: false,
     createdAt: Date.now()
@@ -195,15 +195,11 @@ initVideos.forEach(video => {
 });
 
 app.use(cors({
-  origin: ['http://192.168.1.16:3000', 'http://192.168.1.16:3001', 'http://192.168.1.16:5173'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3001', 'http://localhost:5173'],
   credentials: true
 }));
 
 app.use(express.json());
-
-app.get('/', (req, res) => {
-  res.send('Server is running. Try /api/videos or /api/analytics');
-});
 
 // Calculate total platform revenue using new formula
 function calculatePlatformRevenue(video) {
@@ -259,6 +255,8 @@ function getAdvertiserMultiplier(video) {
   // Convert to multiplier (0.5x to 2x revenue)
   const multiplier = 0.5 + (finalScore * 1.5);
   
+  console.log(`Advertiser score for video ${video.id}: ${finalScore.toFixed(2)}, multiplier: ${multiplier.toFixed(2)}x`);
+  
   return multiplier;
 }
 
@@ -271,11 +269,6 @@ function calculateZScore(value, mean, stdDev) {
 // Detect engagement velocity spikes
 function detectVelocitySpike(videoId, currentEngagement) {
   const history = dataStore.engagementHistory.get(videoId) || [];
-
-  const video = dataStore.videos.get(videoId);
-  if (video && video.views > 100000 && history.length < 2) {
-    return false; // Don't flag established videos
-  }
   
   if (history.length < 5) {
     history.push({
@@ -392,6 +385,13 @@ function detectFraud(video) {
     }
   }
   
+  // Report rate check (commented out as reports not in frontend)
+  // const reportRate = video.reports / video.views;
+  // if (reportRate > 0.05) {
+  //   flags.push(`High report rate: ${(reportRate * 100).toFixed(1)}%`);
+  //   riskScore += reportRate * 2;
+  // }
+  
   return {
     flagged: riskScore > 0.5 || flags.length > 2,
     reasons: flags,
@@ -453,14 +453,6 @@ function calculateCreatorShare(video, creator) {
   return sharePercentage;
 }
 
-// NEW: Function to calculate current creator revenue for a video
-function calculateCurrentCreatorRevenue(video) {
-  const platformRevenue = calculatePlatformRevenue(video);
-  const creator = dataStore.creators.get(video.author) || new Creator(video.author);
-  const creatorSharePercent = calculateCreatorShare(video, creator);
-  return platformRevenue * creatorSharePercent;
-}
-
 // Main engagement endpoint
 app.post('/api/engagement', (req, res) => {
   const { videoId, type, userId = 'anonymous', duration, completionRate } = req.body;
@@ -473,6 +465,15 @@ app.post('/api/engagement', (req, res) => {
   if (!video) {
     return res.status(404).json({ error: 'Video not found' });
   }
+  
+  // Track unique viewers (commented out as requested)
+  // if (type === 'view' && video.uniqueViewers.has(userId)) {
+  //   return res.status(200).json({ 
+  //     success: false, 
+  //     message: 'User has already viewed this video to completion',
+  //     currentStats: video
+  //   });
+  // }
   
   const engagement = {
     videoId,
@@ -495,6 +496,10 @@ app.post('/api/engagement', (req, res) => {
       break;
     case 'view': 
       video.views = (video.views || 0) + 1;
+      // Track unique viewer completion (commented out)
+      // if (completionRate >= 0.9) {
+      //   video.uniqueViewers.add(userId);
+      // }
       break;
     case 'share': 
       video.shares = (video.shares || 0) + 1; 
@@ -508,19 +513,24 @@ app.post('/api/engagement', (req, res) => {
         video.totalWatchTime += duration;
       }
       break;
+    // Report functionality (commented out)
+    // case 'report':
+    //   video.reports = (video.reports || 0) + 1;
+    //   break;
   }
   
-  // Calculate revenue DYNAMICALLY (not stored)
+  // Calculate revenue
   const platformRevenue = calculatePlatformRevenue(video);
   const creator = dataStore.creators.get(video.author) || new Creator(video.author);
   const creatorSharePercent = calculateCreatorShare(video, creator);
   const creatorRevenue = platformRevenue * creatorSharePercent;
   
+  video.revenue = creatorRevenue;
   video.qualityScore = calculateQualityScore(video);
   
-  // Update creator credit and total revenue
+  // Update creator credit
   creator.updateCredit(video.qualityScore);
-  // NOTE: We're not adding to totalRevenue here anymore since it's calculated dynamically
+  creator.totalRevenue += creatorRevenue;
   creator.totalVideos = Math.max(creator.totalVideos, 1);
   
   // Enhanced fraud detection
@@ -563,18 +573,15 @@ app.post('/api/engagement', (req, res) => {
   });
 });
 
-// FIXED: Get videos endpoint - calculate revenue dynamically
+// Get videos endpoint
 app.get('/api/videos', (req, res) => {
   const videos = Array.from(dataStore.videos.values()).map(video => {
     const creator = dataStore.creators.get(video.author);
-    const creatorRevenue = calculateCurrentCreatorRevenue(video);
-    const platformRevenue = calculatePlatformRevenue(video);
-    
     return {
       ...video,
       creatorCredit: creator ? creator.creditScore.toFixed(1) : '0.0',
-      estimatedRevenue: creatorRevenue.toFixed(3), // FIXED: Calculate dynamically
-      platformRevenue: platformRevenue.toFixed(3)  // FIXED: Calculate dynamically
+      estimatedRevenue: video.revenue.toFixed(3),
+      platformRevenue: calculatePlatformRevenue(video).toFixed(3)
     };
   });
   
@@ -585,7 +592,7 @@ app.get('/api/videos', (req, res) => {
   });
 });
 
-// FIXED: Analytics endpoint - calculate revenue dynamically
+// Analytics endpoint
 app.get('/api/analytics', (req, res) => {
   const videos = Array.from(dataStore.videos.values());
   const creators = Array.from(dataStore.creators.values());
@@ -593,9 +600,7 @@ app.get('/api/analytics', (req, res) => {
   const totalPlatformRevenue = videos.reduce((sum, v) => 
     sum + calculatePlatformRevenue(v), 0
   );
-  const totalCreatorRevenue = videos.reduce((sum, v) => 
-    sum + calculateCurrentCreatorRevenue(v), 0  // FIXED: Calculate dynamically
-  );
+  const totalCreatorRevenue = videos.reduce((sum, v) => sum + v.revenue, 0);
   const platformRetention = totalPlatformRevenue - totalCreatorRevenue;
   
   // Calculate category performance
@@ -606,7 +611,7 @@ app.get('/api/analytics', (req, res) => {
       categoryStats[cat] = {
         videos: catVideos.length,
         avgQuality: catVideos.reduce((sum, v) => sum + v.qualityScore, 0) / catVideos.length,
-        totalRevenue: catVideos.reduce((sum, v) => sum + calculateCurrentCreatorRevenue(v), 0) // FIXED
+        totalRevenue: catVideos.reduce((sum, v) => sum + v.revenue, 0)
       };
     }
   });
@@ -661,4 +666,7 @@ app.get('/api/debug/engagements', (req, res) => {
 app.listen(port, '0.0.0.0', () => {
   console.log(`Enhanced Value-Sharing Server running on http://0.0.0.0:${port}`);
   console.log(`Access from other devices: http://[YOUR-IP]:${port}`);
+  console.log('\n📊 Revenue Formula: √(V×k) + k₁×log(V) + √(WT×k) + k₁×log(WT)');
+  console.log('🔍 Features: Statistical fraud detection, Creator credit with decay');
+  console.log('📈 AI placeholders: Content categorization, Advertiser scoring');
 });
